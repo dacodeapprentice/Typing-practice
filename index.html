@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typing Practice</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: #2e2e2e;
+      --border-bright: #444;
+      --text: #f0ede6;
+      --text-muted: #666;
+      --text-dim: #2a2a2a;
+      --correct: #c8f0a0;
+      --wrong-bg: rgba(220,60,60,0.18);
+      --wrong: #e05555;
+      --accent: #c8f0a0;
+      --accent-dim: rgba(200,240,160,0.08);
+      --warn: #e05555;
+      --blue: #7eb8f7;
+      --blue-dim: rgba(126,184,247,0.08);
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,240,160,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,240,160,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 880px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .brand p {
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      min-width: 148px;
+    }
+
+    .box-label {
+      font-family: var(--sans);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    /* LENGTH */
+    .length-display {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .length-display small {
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .length-slider {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+
+    .length-presets {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .preset-btn:hover, .preset-btn.active { border-color: var(--accent); color: var(--accent); }
+    .preset-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* TIMER */
+    .timer-display {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: var(--text);
+      transition: color 0.3s;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-display.warning { color: var(--warn); }
+
+    .timer-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .timer-controls label {
+      font-family: var(--sans);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .timer-controls input[type="number"] {
+      width: 42px;
+      padding: 3px 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .timer-controls input[type="number"]:focus { border-color: var(--accent); }
+
+    /* VOICE */
+    .tts-status {
+      font-size: 0.72rem;
+      font-family: var(--sans);
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      min-height: 1em;
+    }
+
+    .tts-status.speaking { color: var(--blue); }
+    .tts-status.error    { color: var(--warn); }
+
+    .tts-voice-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .tts-voice-row label {
+      font-family: var(--sans);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .tts-voice-row select {
+      flex: 1;
+      font-family: var(--sans);
+      font-size: 0.65rem;
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 2px 4px;
+      outline: none;
+    }
+
+    /* ── MODE TABS ── */
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: 10px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .mode-tab:hover { color: var(--text); border-color: var(--border-bright); }
+
+    .mode-tab.active-read  { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+    .mode-tab.active-audio { border-color: var(--blue);   color: var(--blue);   background: var(--blue-dim); }
+
+    .mode-desc {
+      font-family: var(--sans);
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      padding: 8px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      line-height: 1.5;
+    }
+
+    .mode-desc strong { color: var(--text); font-weight: 500; }
+
+    /* ── PANELS ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .panel-label {
+      font-family: var(--sans);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .panel-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Reference text panel */
+    #ref-panel { position: relative; }
+
+    #reference-text {
+      font-size: 1.05rem;
+      line-height: 1.9;
+      word-break: break-word;
+      min-height: 80px;
+    }
+
+    #reference-text .char { display: inline; transition: color 0.08s; }
+    #reference-text .char.pending { color: var(--text-dim); }
+    #reference-text .char.correct { color: var(--correct); }
+    #reference-text .char.wrong   { color: var(--wrong); background: var(--wrong-bg); border-radius: 2px; }
+
+    /* Hidden state — blur/cover the reference text before start */
+    #ref-cover {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: var(--surface);
+      border-radius: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 2;
+    }
+
+    #ref-cover.show { display: flex; }
+
+    .cover-icon {
+      font-size: 1.5rem;
+      opacity: 0.25;
+      line-height: 1;
+    }
+
+    .cover-msg {
+      font-family: var(--sans);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* Audio mode: revealed text (shown after typing done) */
+    #audio-reveal {
+      display: none;
+      font-size: 1.05rem;
+      line-height: 1.9;
+      word-break: break-word;
+      min-height: 80px;
+      margin-top: 0.5rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    #audio-reveal.show { display: block; }
+    #audio-reveal .char { display: inline; }
+
+    /* Input panel */
+    #input-panel { cursor: text; border-color: var(--border); transition: border-color 0.2s; }
+    #input-panel.active { border-color: var(--border-bright); }
+    #input-panel.active .panel-label { color: var(--accent); }
+
+    #input-area {
+      font-size: 1.05rem;
+      line-height: 1.9;
+      word-break: break-word;
+      min-height: 80px;
+    }
+
+    #input-area .char { display: inline; }
+
+    #cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.15em;
+      background: var(--accent);
+      border-radius: 1px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-start infinite;
+      margin-left: 1px;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    #hidden-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+
+    /* ── START / ACTION BUTTONS ── */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-main {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-main:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-green { background: var(--accent); color: #0f0f0f; }
+    .btn-green:hover:not(:disabled) { opacity: 0.85; }
+
+    .btn-blue  { background: var(--blue); color: #0f0f0f; }
+    .btn-blue:hover:not(:disabled)  { opacity: 0.85; }
+
+    .btn-ghost {
+      padding: 10px 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .action-status {
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .action-status.highlight { color: var(--blue); }
+
+    /* ── STATS ── */
+    .stats-bar {
+      display: flex;
+      gap: 2rem;
+      padding: 0.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .stat { font-family: var(--sans); font-size: 0.78rem; color: var(--text-muted); }
+    .stat span { font-family: var(--mono); font-weight: 600; color: var(--text); margin-left: 4px; }
+
+    /* ── OVERLAY ── */
+    #wrap { position: relative; }
+
+    #overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,10,0.85);
+      border-radius: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 10;
+      backdrop-filter: blur(4px);
+    }
+
+    #overlay.show { display: flex; }
+
+    .overlay-msg {
+      font-family: var(--mono);
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .overlay-sub { font-family: var(--sans); font-size: 0.82rem; color: var(--text-muted); }
+
+    .btn-reset {
+      padding: 10px 28px;
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      margin-top: 4px;
+    }
+
+    .btn-reset:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    .hint {
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <h1>// type_practice</h1>
+      <p>Train your wrap-up speed. Every second counts.</p>
+    </div>
+
+    <div class="controls-row">
+
+      <!-- LENGTH -->
+      <div class="ctrl-box">
+        <div class="box-label">Text length</div>
+        <div class="length-display"><span id="len-display">100</span> <small>chars</small></div>
+        <input class="length-slider" id="len-slider" type="range" min="20" max="1000" step="10" value="100" />
+        <div class="length-presets">
+          <button class="preset-btn" data-len="50">50</button>
+          <button class="preset-btn active" data-len="100">100</button>
+          <button class="preset-btn" data-len="200">200</button>
+          <button class="preset-btn" data-len="500">500</button>
+          <button class="preset-btn" data-len="1000">1k</button>
+        </div>
+      </div>
+
+      <!-- TIMER -->
+      <div class="ctrl-box">
+        <div class="box-label">Timer</div>
+        <div class="timer-display" id="timer-display">01:00</div>
+        <div class="timer-controls">
+          <label>min</label>
+          <input id="min-input" type="number" min="0" max="10" value="1" />
+          <label>sec</label>
+          <input id="sec-input" type="number" min="0" max="59" value="0" />
+        </div>
+      </div>
+
+      <!-- VOICE -->
+      <div class="ctrl-box" style="min-width:160px;">
+        <div class="box-label">Voice</div>
+        <div class="tts-status" id="tts-status">Ready</div>
+        <div class="tts-voice-row">
+          <label>Voice</label>
+          <select id="voice-select"></select>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MODE TABS -->
+  <div class="mode-tabs">
+    <button class="mode-tab active-read" id="tab-read" onclick="setMode('read')">&#128065; Read mode</button>
+    <button class="mode-tab" id="tab-audio" onclick="setMode('audio')">&#127911; Audio mode</button>
+  </div>
+
+  <div class="mode-desc" id="mode-desc">
+    <strong>Read mode:</strong> The text appears when you press Start. Read it, then type it in the box below. Look at your typing box — not the keyboard — to know if you are doing well.
+  </div>
+
+  <!-- ACTION ROW -->
+  <div class="action-row">
+    <button class="btn-main btn-green" id="btn-start" onclick="handleStart()">&#9654; Start</button>
+    <button class="btn-ghost" id="btn-reset-top" onclick="resetAll()" disabled>&#8635; Reset</button>
+    <span class="action-status" id="action-status"></span>
+  </div>
+
+  <!-- PANELS -->
+  <div id="wrap">
+    <!-- Reference panel -->
+    <div class="panel" id="ref-panel">
+      <div class="panel-label" id="ref-label">Reference text</div>
+      <div id="reference-text"></div>
+      <!-- Cover shown before start and in audio mode after typing -->
+      <div id="ref-cover" class="show">
+        <div class="cover-icon">&#128065;</div>
+        <div class="cover-msg" id="cover-msg">Press Start to reveal the text</div>
+      </div>
+      <!-- Audio mode: shown after user finishes typing -->
+      <div id="audio-reveal"></div>
+    </div>
+
+    <!-- Input panel -->
+    <div class="panel" id="input-panel" onclick="focusInput()">
+      <div class="panel-label">Your input — click here then type</div>
+      <div id="input-area"><span id="cursor"></span></div>
+    </div>
+
+    <!-- End overlay -->
+    <div id="overlay">
+      <div class="overlay-msg" id="overlay-msg">Time's up!</div>
+      <div class="overlay-sub" id="overlay-sub"></div>
+      <button class="btn-reset" id="reset-btn" onclick="resetAll()">&#8635; Reset</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat">Typed:<span id="stat-typed">0</span></div>
+    <div class="stat">Correct:<span id="stat-correct">0</span></div>
+    <div class="stat">Errors:<span id="stat-errors">0</span></div>
+    <div class="stat">Accuracy:<span id="stat-acc">—</span></div>
+    <div class="stat">WPM:<span id="stat-wpm">—</span></div>
+  </div>
+
+  <p class="hint">Focus on your output box — not the keyboard. That is how you know you are doing well.</p>
+</div>
+
+<input id="hidden-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+
+<script>
+  /* ───────────────────────────────────────────
+     SAMPLE SENTENCES
+  ─────────────────────────────────────────── */
+  const SAMPLES = [
+    "Please hold while I update your account details and verify the information provided today.",
+    "Your call is very important to us. Thank you for your patience and understanding.",
+    "I have processed your request and the changes will take effect within 24 to 48 hours.",
+    "Could you please confirm your full name and the last four digits of your account number?",
+    "I understand your frustration and I will do my best to resolve this issue right away.",
+    "The new policy will be implemented starting from the first day of next month for all users.",
+    "We appreciate your feedback and will forward it to the relevant department immediately.",
+    "I have noted your complaint and assigned it a reference number for follow up purposes.",
+    "Your account has been updated successfully. Is there anything else I can help you with?",
+    "Let me transfer you to the billing department who will be able to assist you further.",
+    "I can confirm that your payment has been received and your balance is now up to date.",
+    "Thank you for calling. I will send a confirmation email to the address we have on file.",
+    "Please be advised that the estimated wait time for your request is three to five business days.",
+    "I have flagged your account and a specialist will contact you within the next two hours.",
+    "I will place you on a brief hold while I check that information for you right now.",
+    "Your request has been escalated to a senior agent who will follow up with you shortly.",
+    "I can see that you have been a valued customer with us for many years, thank you.",
+    "The reference number for your case today is available in the confirmation email we sent.",
+    "I am happy to waive the fee on this occasion as a gesture of goodwill for you.",
+    "The quick brown fox jumps over the lazy dog near the river bank on a sunny afternoon.",
+  ];
+
+  /* ───────────────────────────────────────────
+     STATE
+  ─────────────────────────────────────────── */
+  let mode          = 'read';   // 'read' | 'audio'
+  let phase         = 'idle';   // 'idle' | 'audio-playing' | 'typing' | 'done'
+  let refChars      = [];
+  let typed         = [];
+  let timerInterval = null;
+  let secondsLeft   = 60;
+  let running       = false;
+  let startTime     = null;
+  let currentText   = '';
+
+  /* ───────────────────────────────────────────
+     DOM
+  ─────────────────────────────────────────── */
+  const refEl        = document.getElementById('reference-text');
+  const refCover     = document.getElementById('ref-cover');
+  const coverMsg     = document.getElementById('cover-msg');
+  const audioReveal  = document.getElementById('audio-reveal');
+  const refLabel     = document.getElementById('ref-label');
+  const inputArea    = document.getElementById('input-area');
+  const cursorEl     = document.getElementById('cursor');
+  const hiddenInput  = document.getElementById('hidden-input');
+  const timerDisp    = document.getElementById('timer-display');
+  const minInput     = document.getElementById('min-input');
+  const secInput     = document.getElementById('sec-input');
+  const overlay      = document.getElementById('overlay');
+  const overlayMsg   = document.getElementById('overlay-msg');
+  const overlaySub   = document.getElementById('overlay-sub');
+  const inputPanel   = document.getElementById('input-panel');
+  const statTyped    = document.getElementById('stat-typed');
+  const statCorrect  = document.getElementById('stat-correct');
+  const statErrors   = document.getElementById('stat-errors');
+  const statAcc      = document.getElementById('stat-acc');
+  const statWpm      = document.getElementById('stat-wpm');
+  const lenSlider    = document.getElementById('len-slider');
+  const lenDisplay   = document.getElementById('len-display');
+  const presetBtns   = document.querySelectorAll('.preset-btn');
+  const voiceSelect  = document.getElementById('voice-select');
+  const ttsStatus    = document.getElementById('tts-status');
+  const btnStart     = document.getElementById('btn-start');
+  const btnResetTop  = document.getElementById('btn-reset-top');
+  const actionStatus = document.getElementById('action-status');
+  const modeDesc     = document.getElementById('mode-desc');
+
+  /* ───────────────────────────────────────────
+     MODE SWITCHING
+  ─────────────────────────────────────────── */
+  function setMode(m) {
+    if (running || phase === 'audio-playing') return;
+    mode = m;
+    document.getElementById('tab-read').className  = 'mode-tab' + (m === 'read'  ? ' active-read'  : '');
+    document.getElementById('tab-audio').className = 'mode-tab' + (m === 'audio' ? ' active-audio' : '');
+
+    if (m === 'read') {
+      modeDesc.innerHTML = '<strong>Read mode:</strong> The text appears when you press Start. Read it, then type it in the box below. Look at your typing box — not the keyboard — to know if you are doing well.';
+      btnStart.className = 'btn-main btn-green';
+      btnStart.innerHTML = '&#9654; Start';
+    } else {
+      modeDesc.innerHTML = '<strong>Audio mode:</strong> Press Start to play the audio. Listen carefully. Once it finishes, the timer starts and you type what you heard. The text stays hidden — your typing output is your only feedback.';
+      btnStart.className = 'btn-main btn-blue';
+      btnStart.innerHTML = '&#9654; Start &amp; Play';
+    }
+    resetAll(true);
+  }
+
+  /* ───────────────────────────────────────────
+     TEXT GENERATION
+  ─────────────────────────────────────────── */
+  function buildTextForLength(targetLen) {
+    let result = '';
+    let tries  = 0;
+    while (result.length < targetLen && tries < 500) {
+      const s = SAMPLES[Math.floor(Math.random() * SAMPLES.length)];
+      result   = result.length === 0 ? s : result + ' ' + s;
+      tries++;
+    }
+    let trimmed   = result.slice(0, targetLen);
+    const lastSp  = trimmed.lastIndexOf(' ');
+    if (lastSp > targetLen * 0.75) trimmed = trimmed.slice(0, lastSp);
+    return trimmed.trimEnd();
+  }
+
+  function getTargetLength() { return parseInt(lenSlider.value) || 100; }
+
+  function updateLenDisplay() {
+    lenDisplay.textContent = lenSlider.value;
+    presetBtns.forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.len) === parseInt(lenSlider.value));
+    });
+  }
+
+  lenSlider.addEventListener('input', () => {
+    updateLenDisplay();
+    if (phase === 'idle') regenerateText();
+  });
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (running || phase === 'audio-playing') return;
+      lenSlider.value = btn.dataset.len;
+      updateLenDisplay();
+      if (phase === 'idle') regenerateText();
+    });
+  });
+
+  function regenerateText() {
+    currentText = buildTextForLength(getTargetLength());
+    buildRef(currentText);
+    typed = [];
+    renderInput();
+    updateStats();
+    stopSpeech();
+    audioReveal.classList.remove('show');
+    audioReveal.innerHTML = '';
+  }
+
+  /* ───────────────────────────────────────────
+     BUILD REFERENCE TEXT
+  ─────────────────────────────────────────── */
+  function buildRef(text) {
+    refChars = text.split('');
+    refEl.innerHTML = '';
+    refChars.forEach((ch, i) => {
+      const s = document.createElement('span');
+      s.className   = 'char pending';
+      s.id          = 'r' + i;
+      s.textContent = ch === ' ' ? '\u00a0' : ch;
+      refEl.appendChild(s);
+    });
+  }
+
+  /* ───────────────────────────────────────────
+     RENDER INPUT
+  ─────────────────────────────────────────── */
+  function renderInput() {
+    inputArea.innerHTML = '';
+    typed.forEach((ch, i) => {
+      const s = document.createElement('span');
+      s.className = 'char';
+      if (ch === refChars[i]) {
+        s.style.color = 'var(--correct)';
+      } else {
+        s.style.color      = 'var(--wrong)';
+        s.style.background = 'var(--wrong-bg)';
+        s.style.borderRadius = '2px';
+      }
+      s.textContent = ch === ' ' ? '\u00a0' : ch;
+      inputArea.appendChild(s);
+    });
+    inputArea.appendChild(cursorEl);
+    updateRefHighlight();
+    updateStats();
+  }
+
+  function updateRefHighlight() {
+    refChars.forEach((ch, i) => {
+      const el = document.getElementById('r' + i);
+      if (!el) return;
+      if (i < typed.length) {
+        el.className = typed[i] === ch ? 'char correct' : 'char wrong';
+      } else {
+        el.className = 'char pending';
+      }
+    });
+  }
+
+  /* ───────────────────────────────────────────
+     STATS
+  ─────────────────────────────────────────── */
+  function calcWpm() {
+    if (!startTime || typed.length === 0) return '—';
+    const elapsed = (Date.now() - startTime) / 1000 / 60;
+    if (elapsed < 0.05) return '—';
+    const correct = typed.filter((ch, i) => ch === refChars[i]).length;
+    return Math.round((correct / 5) / elapsed);
+  }
+
+  function updateStats() {
+    const total   = typed.length;
+    const correct = typed.filter((ch, i) => ch === refChars[i]).length;
+    const errors  = total - correct;
+    statTyped.textContent   = total;
+    statCorrect.textContent = correct;
+    statErrors.textContent  = errors;
+    statAcc.textContent     = total > 0 ? Math.round((correct / total) * 100) + '%' : '—';
+    statWpm.textContent     = calcWpm();
+  }
+
+  /* ───────────────────────────────────────────
+     TIMER
+  ─────────────────────────────────────────── */
+  function getTotalSeconds() {
+    const m = Math.max(0, parseInt(minInput.value) || 0);
+    const s = Math.max(0, Math.min(59, parseInt(secInput.value) || 0));
+    return Math.max(5, m * 60 + s);
+  }
+
+  function formatTime(s) {
+    const m   = Math.floor(s / 60);
+    const sec = s % 60;
+    return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  function syncTimerDisplay() {
+    timerDisp.textContent = formatTime(getTotalSeconds());
+    timerDisp.classList.remove('warning');
+  }
+
+  minInput.addEventListener('input', () => { if (!running) syncTimerDisplay(); });
+  secInput.addEventListener('input', () => { if (!running) syncTimerDisplay(); });
+
+  function startCountdown() {
+    secondsLeft = getTotalSeconds();
+    startTime   = Date.now();
+    timerDisp.textContent = formatTime(secondsLeft);
+    timerDisp.classList.remove('warning');
+    running = true;
+    phase   = 'typing';
+    hiddenInput.focus();
+    inputPanel.classList.add('active');
+    actionStatus.textContent  = 'Timer running — type!';
+    actionStatus.className    = 'action-status';
+
+    timerInterval = setInterval(() => {
+      secondsLeft--;
+      timerDisp.textContent = formatTime(secondsLeft);
+      if (secondsLeft <= 10) timerDisp.classList.add('warning');
+      if (secondsLeft <= 0) {
+        clearInterval(timerInterval);
+        endSession(false);
+      }
+    }, 1000);
+  }
+
+  /* ───────────────────────────────────────────
+     HANDLE START BUTTON
+  ─────────────────────────────────────────── */
+  function handleStart() {
+    if (phase !== 'idle') return;
+    btnStart.disabled   = true;
+    btnResetTop.disabled = false;
+    lockLengthControls(true);
+
+    if (mode === 'read') {
+      // Reveal reference text immediately
+      refCover.classList.remove('show');
+      startCountdown();
+    } else {
+      // Audio mode: play first, then start timer when done
+      phase = 'audio-playing';
+      actionStatus.textContent  = 'Listening… timer starts after audio ends';
+      actionStatus.className    = 'action-status highlight';
+      // Keep cover on with audio message
+      coverMsg.textContent = 'Listening — the text is hidden. Type what you hear after the audio ends.';
+      refCover.classList.add('show');
+      speakText(function onDone() {
+        // Audio finished — now start timer and allow typing
+        actionStatus.textContent = 'Audio done — timer running, type what you heard!';
+        actionStatus.className   = 'action-status highlight';
+        startCountdown();
+      });
+    }
+  }
+
+  /* ───────────────────────────────────────────
+     END SESSION
+  ─────────────────────────────────────────── */
+  function endSession(completed) {
+    running = false;
+    phase   = 'done';
+    stopSpeech();
+    hiddenInput.blur();
+    inputPanel.classList.remove('active');
+
+    // In audio mode, reveal the text now for comparison
+    if (mode === 'audio') {
+      audioReveal.innerHTML = '';
+      const heading = document.createElement('div');
+      heading.style.cssText = 'font-family:var(--sans);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:8px;';
+      heading.textContent   = 'What the text actually said:';
+      audioReveal.appendChild(heading);
+      refChars.forEach((ch, i) => {
+        const s = document.createElement('span');
+        s.className = 'char';
+        if (i < typed.length) {
+          s.style.color = typed[i] === ch ? 'var(--correct)' : 'var(--wrong)';
+          if (typed[i] !== ch) s.style.background = 'var(--wrong-bg)';
+        } else {
+          s.style.color = 'var(--text-muted)';
+        }
+        s.textContent = ch === ' ' ? '\u00a0' : ch;
+        audioReveal.appendChild(s);
+      });
+      audioReveal.classList.add('show');
+      refCover.classList.remove('show');
+    }
+
+    const total   = typed.length;
+    const correct = typed.filter((ch, i) => ch === refChars[i]).length;
+    const acc     = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const wpm     = calcWpm();
+
+    overlayMsg.textContent = completed ? '✓ Completed!' : "Time's up!";
+    overlaySub.textContent = `${correct} correct · ${acc}% accuracy · ${wpm} WPM`;
+    overlay.classList.add('show');
+  }
+
+  /* ───────────────────────────────────────────
+     RESET
+  ─────────────────────────────────────────── */
+  function lockLengthControls(lock) {
+    lenSlider.disabled = lock;
+    minInput.disabled  = lock;
+    secInput.disabled  = lock;
+    presetBtns.forEach(b => b.disabled = lock);
+  }
+
+  function resetAll(silent) {
+    clearInterval(timerInterval);
+    running   = false;
+    phase     = 'idle';
+    startTime = null;
+    typed     = [];
+    stopSpeech();
+
+    overlay.classList.remove('show');
+    timerDisp.classList.remove('warning');
+    audioReveal.classList.remove('show');
+    audioReveal.innerHTML = '';
+
+    // Re-show cover
+    refCover.classList.add('show');
+    coverMsg.textContent = mode === 'audio'
+      ? 'Press Start & Play — text stays hidden until you finish typing'
+      : 'Press Start to reveal the text';
+
+    btnStart.disabled    = false;
+    btnResetTop.disabled = true;
+    lockLengthControls(false);
+    syncTimerDisplay();
+    actionStatus.textContent = '';
+    actionStatus.className   = 'action-status';
+    inputPanel.classList.remove('active');
+    hiddenInput.value = '';
+
+    if (!silent) {
+      currentText = buildTextForLength(getTargetLength());
+      buildRef(currentText);
+    }
+    renderInput();
+    updateStats();
+  }
+
+  function focusInput() {
+    if (!running) return;
+    hiddenInput.focus();
+    inputPanel.classList.add('active');
+  }
+
+  /* ───────────────────────────────────────────
+     TYPING
+  ─────────────────────────────────────────── */
+  hiddenInput.addEventListener('input', (e) => {
+    if (!running) return;
+    const val = e.data;
+    hiddenInput.value = '';
+    if (val === null || val === undefined) return;
+    if (typed.length < refChars.length) {
+      typed.push(val);
+      renderInput();
+    }
+    if (typed.length === refChars.length) {
+      clearInterval(timerInterval);
+      endSession(true);
+    }
+  });
+
+  hiddenInput.addEventListener('keydown', (e) => {
+    if (!running) return;
+    if (e.key === 'Backspace') {
+      if (typed.length > 0) typed.pop();
+      renderInput();
+      e.preventDefault();
+    }
+  });
+
+  /* ───────────────────────────────────────────
+     TEXT-TO-SPEECH
+  ─────────────────────────────────────────── */
+  let voices       = [];
+  let onSpeakDone  = null;
+
+  function loadVoices() {
+    const all = speechSynthesis.getVoices();
+    voices = all.filter(v => v.lang.startsWith('en'));
+    if (voices.length === 0) voices = all;
+    voiceSelect.innerHTML = '';
+    voices.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = v.name.length > 26 ? v.name.slice(0, 24) + '…' : v.name;
+      voiceSelect.appendChild(opt);
+    });
+    const preferred = voices.findIndex(v =>
+      /google uk english female|samantha|karen|moira|daniel|google us english/i.test(v.name)
+    );
+    if (preferred >= 0) voiceSelect.value = preferred;
+  }
+
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  } else {
+    ttsStatus.textContent = 'TTS not supported';
+    ttsStatus.className   = 'tts-status error';
+  }
+
+  function speakText(onDone) {
+    if (!('speechSynthesis' in window)) {
+      if (onDone) onDone();
+      return;
+    }
+    stopSpeech();
+    onSpeakDone = onDone || null;
+    const utt   = new SpeechSynthesisUtterance(currentText);
+    const vi    = parseInt(voiceSelect.value);
+    if (voices[vi]) utt.voice = voices[vi];
+    utt.rate  = 0.92;
+    utt.pitch = 1;
+
+    utt.onstart = () => {
+      ttsStatus.textContent = 'Speaking…';
+      ttsStatus.className   = 'tts-status speaking';
+    };
+    utt.onend = () => {
+      ttsStatus.textContent = 'Done';
+      ttsStatus.className   = 'tts-status';
+      if (onSpeakDone) { onSpeakDone(); onSpeakDone = null; }
+    };
+    utt.onerror = () => {
+      ttsStatus.textContent = 'Audio error';
+      ttsStatus.className   = 'tts-status error';
+      if (onSpeakDone) { onSpeakDone(); onSpeakDone = null; }
+    };
+    speechSynthesis.speak(utt);
+  }
+
+  function stopSpeech() {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      onSpeakDone = null;
+    }
+    ttsStatus.textContent = 'Ready';
+    ttsStatus.className   = 'tts-status';
+  }
+
+  /* ───────────────────────────────────────────
+     INIT
+  ─────────────────────────────────────────── */
+  updateLenDisplay();
+  syncTimerDisplay();
+  currentText = buildTextForLength(getTargetLength());
+  buildRef(currentText);
+  renderInput();
+  updateStats();
+</script>
+</body>
+</html>
