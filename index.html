@@ -56,7 +56,25 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 880px;
+      max-width: 1140px;
+    }
+
+    /* ── LAYOUT: sidebar + exercise ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 1.75rem;
+      align-items: start;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
     }
 
     /* ── HEADER ── */
@@ -85,20 +103,13 @@
       margin-top: 3px;
     }
 
-    .controls-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-
     .ctrl-box {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px 16px;
       text-align: center;
-      min-width: 148px;
+      width: 100%;
     }
 
     .box-label {
@@ -242,7 +253,6 @@
     .mode-tabs {
       display: flex;
       gap: 8px;
-      margin-bottom: 1rem;
     }
 
     .mode-tab {
@@ -271,7 +281,6 @@
       font-family: var(--sans);
       font-size: 0.76rem;
       color: var(--text-muted);
-      margin-bottom: 1rem;
       padding: 8px 14px;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -396,7 +405,9 @@
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
     #hidden-input {
-      position: absolute;
+      position: fixed;
+      top: 0;
+      left: 0;
       opacity: 0;
       pointer-events: none;
       width: 1px;
@@ -407,7 +418,6 @@
     .action-row {
       display: flex;
       gap: 10px;
-      margin-bottom: 0.75rem;
       align-items: center;
       flex-wrap: wrap;
     }
@@ -455,7 +465,6 @@
       font-family: var(--sans);
       font-size: 0.78rem;
       color: var(--text-muted);
-      margin-left: auto;
     }
 
     .action-status.highlight { color: var(--blue); }
@@ -463,12 +472,14 @@
     /* ── STATS ── */
     .stats-bar {
       display: flex;
-      gap: 2rem;
-      padding: 0.5rem 0;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0.85rem 0 0.25rem;
+      margin-top: 4px;
+      border-top: 1px solid var(--border);
     }
 
-    .stat { font-family: var(--sans); font-size: 0.78rem; color: var(--text-muted); }
+    .stat { display: flex; justify-content: space-between; font-family: var(--sans); font-size: 0.78rem; color: var(--text-muted); }
     .stat span { font-family: var(--mono); font-weight: 600; color: var(--text); margin-left: 4px; }
 
     /* ── OVERLAY ── */
@@ -526,6 +537,91 @@
       text-align: center;
       margin-top: 1rem;
     }
+
+    /* ── VIRTUAL KEYBOARD ── */
+    .keyboard {
+      --ku: 2.35rem;
+      --kg: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--kg);
+      padding: 6px 0 2px;
+      overflow-x: auto;
+    }
+
+    .kbd-row {
+      display: flex;
+      gap: var(--kg);
+    }
+
+    .key {
+      width: calc(var(--ku) * var(--w, 1));
+      height: var(--ku);
+      flex: 0 0 auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      user-select: none;
+      transition: background 0.06s ease, border-color 0.06s ease, color 0.06s ease, transform 0.06s ease;
+    }
+
+    .key.pressed {
+      background: var(--correct);
+      border-color: var(--correct);
+      color: #0f0f0f;
+      transform: translateY(1px);
+    }
+
+    /* Audio mode is themed blue throughout — match the keyboard to it */
+    .keyboard.audio-mode .key.pressed {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .key .key-shift {
+      position: absolute;
+      top: 2px;
+      right: 5px;
+      font-size: 0.5rem;
+      color: var(--text-dim);
+    }
+
+    .key.pressed .key-shift { color: rgba(15,15,15,0.5); }
+
+    /* home-row finger guides, like a physical keyboard */
+    .key[data-code="KeyF"]::after,
+    .key[data-code="KeyJ"]::after {
+      content: '';
+      position: absolute;
+      bottom: 5px;
+      width: 9px;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--text-dim);
+    }
+
+    .key.pressed[data-code="KeyF"]::after,
+    .key.pressed[data-code="KeyJ"]::after { background: rgba(15,15,15,0.45); }
+
+    @media (max-width: 640px) {
+      .keyboard { --ku: 1.7rem; }
+      .key { font-size: 0.6rem; }
+      .key .key-shift { display: none; }
+    }
+
+    @media (max-width: 420px) {
+      .keyboard { --ku: 1.32rem; }
+    }
   </style>
 </head>
 <body>
@@ -537,8 +633,22 @@
       <h1>// type_practice</h1>
       <p>Train your wrap-up speed. Every second counts.</p>
     </div>
+  </header>
 
-    <div class="controls-row">
+  <div class="layout">
+
+    <!-- SIDEBAR: mode, settings, actions, stats -->
+    <aside class="sidebar">
+
+      <!-- MODE TABS -->
+      <div class="mode-tabs">
+        <button class="mode-tab active-read" id="tab-read" onclick="setMode('read')">&#128065; Read mode</button>
+        <button class="mode-tab" id="tab-audio" onclick="setMode('audio')">&#127911; Audio mode</button>
+      </div>
+
+      <div class="mode-desc" id="mode-desc">
+        <strong>Read mode:</strong> The text appears when you press Start. Read it, then type it in the box below. Look at your typing box — not the keyboard — to know if you are doing well.
+      </div>
 
       <!-- LENGTH -->
       <div class="ctrl-box">
@@ -567,7 +677,7 @@
       </div>
 
       <!-- VOICE -->
-      <div class="ctrl-box" style="min-width:160px;">
+      <div class="ctrl-box">
         <div class="box-label">Voice</div>
         <div class="tts-status" id="tts-status">Ready</div>
         <div class="tts-voice-row">
@@ -576,28 +686,35 @@
         </div>
       </div>
 
-    </div>
-  </header>
+      <!-- ACTION ROW -->
+      <div class="action-row">
+        <button class="btn-main btn-green" id="btn-start" onclick="handleStart()">&#9654; Start</button>
+        <button class="btn-ghost" id="btn-reset-top" onclick="resetAll()" disabled>&#8635; Reset</button>
+      </div>
+      <div class="action-status" id="action-status"></div>
 
-  <!-- MODE TABS -->
-  <div class="mode-tabs">
-    <button class="mode-tab active-read" id="tab-read" onclick="setMode('read')">&#128065; Read mode</button>
-    <button class="mode-tab" id="tab-audio" onclick="setMode('audio')">&#127911; Audio mode</button>
-  </div>
+      <!-- STATS -->
+      <div class="stats-bar">
+        <div class="stat">Typed:<span id="stat-typed">0</span></div>
+        <div class="stat">Correct:<span id="stat-correct">0</span></div>
+        <div class="stat">Errors:<span id="stat-errors">0</span></div>
+        <div class="stat">Accuracy:<span id="stat-acc">—</span></div>
+        <div class="stat">WPM:<span id="stat-wpm">—</span></div>
+      </div>
 
-  <div class="mode-desc" id="mode-desc">
-    <strong>Read mode:</strong> The text appears when you press Start. Read it, then type it in the box below. Look at your typing box — not the keyboard — to know if you are doing well.
-  </div>
+    </aside>
 
-  <!-- ACTION ROW -->
-  <div class="action-row">
-    <button class="btn-main btn-green" id="btn-start" onclick="handleStart()">&#9654; Start</button>
-    <button class="btn-ghost" id="btn-reset-top" onclick="resetAll()" disabled>&#8635; Reset</button>
-    <span class="action-status" id="action-status"></span>
-  </div>
+    <!-- MAIN: keyboard sits above the exercise -->
+    <main class="exercise">
 
-  <!-- PANELS -->
-  <div id="wrap">
+      <!-- KEYBOARD -->
+      <div class="panel" id="keyboard-panel">
+        <div class="panel-label">Keyboard</div>
+        <div class="keyboard" id="keyboard"></div>
+      </div>
+
+      <!-- PANELS -->
+      <div id="wrap">
     <!-- Reference panel -->
     <div class="panel" id="ref-panel">
       <div class="panel-label" id="ref-label">Reference text</div>
@@ -625,13 +742,8 @@
     </div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats-bar">
-    <div class="stat">Typed:<span id="stat-typed">0</span></div>
-    <div class="stat">Correct:<span id="stat-correct">0</span></div>
-    <div class="stat">Errors:<span id="stat-errors">0</span></div>
-    <div class="stat">Accuracy:<span id="stat-acc">—</span></div>
-    <div class="stat">WPM:<span id="stat-wpm">—</span></div>
+    </main>
+
   </div>
 
   <p class="hint">Focus on your output box — not the keyboard. That is how you know you are doing well.</p>
@@ -720,6 +832,7 @@
     mode = m;
     document.getElementById('tab-read').className  = 'mode-tab' + (m === 'read'  ? ' active-read'  : '');
     document.getElementById('tab-audio').className = 'mode-tab' + (m === 'audio' ? ' active-audio' : '');
+    keyboardEl.classList.toggle('audio-mode', m === 'audio');
 
     if (m === 'read') {
       modeDesc.innerHTML = '<strong>Read mode:</strong> The text appears when you press Start. Read it, then type it in the box below. Look at your typing box — not the keyboard — to know if you are doing well.';
@@ -1125,6 +1238,109 @@
   }
 
   /* ───────────────────────────────────────────
+     VIRTUAL KEYBOARD
+  ─────────────────────────────────────────── */
+  const KEY_ROWS = [
+    [
+      { code: 'Backquote',    label: '`',   shift: '~' },
+      { code: 'Digit1',       label: '1',   shift: '!' },
+      { code: 'Digit2',       label: '2',   shift: '@' },
+      { code: 'Digit3',       label: '3',   shift: '#' },
+      { code: 'Digit4',       label: '4',   shift: '$' },
+      { code: 'Digit5',       label: '5',   shift: '%' },
+      { code: 'Digit6',       label: '6',   shift: '^' },
+      { code: 'Digit7',       label: '7',   shift: '&' },
+      { code: 'Digit8',       label: '8',   shift: '*' },
+      { code: 'Digit9',       label: '9',   shift: '(' },
+      { code: 'Digit0',       label: '0',   shift: ')' },
+      { code: 'Minus',        label: '-',   shift: '_' },
+      { code: 'Equal',        label: '=',   shift: '+' },
+      { code: 'Backspace',    label: '⌫',   w: 1.7 },
+    ],
+    [
+      { code: 'Tab', label: 'Tab', w: 1.4 },
+      { code: 'KeyQ', label: 'Q' }, { code: 'KeyW', label: 'W' }, { code: 'KeyE', label: 'E' },
+      { code: 'KeyR', label: 'R' }, { code: 'KeyT', label: 'T' }, { code: 'KeyY', label: 'Y' },
+      { code: 'KeyU', label: 'U' }, { code: 'KeyI', label: 'I' }, { code: 'KeyO', label: 'O' },
+      { code: 'KeyP', label: 'P' },
+      { code: 'BracketLeft',  label: '[',  shift: '{' },
+      { code: 'BracketRight', label: ']',  shift: '}' },
+      { code: 'Backslash',    label: '\\', shift: '|', w: 1.4 },
+    ],
+    [
+      { code: 'CapsLock', label: 'Caps', w: 1.7 },
+      { code: 'KeyA', label: 'A' }, { code: 'KeyS', label: 'S' }, { code: 'KeyD', label: 'D' },
+      { code: 'KeyF', label: 'F' }, { code: 'KeyG', label: 'G' }, { code: 'KeyH', label: 'H' },
+      { code: 'KeyJ', label: 'J' }, { code: 'KeyK', label: 'K' }, { code: 'KeyL', label: 'L' },
+      { code: 'Semicolon', label: ';',  shift: ':' },
+      { code: 'Quote',     label: "'", shift: '"' },
+      { code: 'Enter',     label: 'Enter', w: 2.2 },
+    ],
+    [
+      { code: 'ShiftLeft', label: 'Shift', w: 2.2 },
+      { code: 'KeyZ', label: 'Z' }, { code: 'KeyX', label: 'X' }, { code: 'KeyC', label: 'C' },
+      { code: 'KeyV', label: 'V' }, { code: 'KeyB', label: 'B' }, { code: 'KeyN', label: 'N' },
+      { code: 'KeyM', label: 'M' },
+      { code: 'Comma',  label: ',', shift: '<' },
+      { code: 'Period', label: '.', shift: '>' },
+      { code: 'Slash',  label: '/', shift: '?' },
+      { code: 'ShiftRight', label: 'Shift', w: 2.7 },
+    ],
+    [
+      { code: 'ControlLeft',  label: 'Ctrl', w: 1.3 },
+      { code: 'AltLeft',      label: 'Alt',  w: 1.2 },
+      { code: 'Space',        label: '',     w: 6.0 },
+      { code: 'AltRight',     label: 'Alt',  w: 1.2 },
+      { code: 'ControlRight', label: 'Ctrl', w: 1.3 },
+    ],
+  ];
+
+  const keyboardEl = document.getElementById('keyboard');
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function buildKeyboard() {
+    keyboardEl.innerHTML = '';
+    KEY_ROWS.forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'kbd-row';
+      row.forEach(k => {
+        const keyEl = document.createElement('div');
+        keyEl.className = 'key';
+        keyEl.dataset.code = k.code;
+        keyEl.style.setProperty('--w', k.w || 1);
+        let html = '';
+        if (k.shift) html += '<span class="key-shift">' + escapeHtml(k.shift) + '</span>';
+        html += '<span class="key-main">' + escapeHtml(k.label) + '</span>';
+        keyEl.innerHTML = html;
+        rowEl.appendChild(keyEl);
+      });
+      keyboardEl.appendChild(rowEl);
+    });
+  }
+
+  function setKeyVisual(code, isDown) {
+    const el = keyboardEl.querySelector('.key[data-code="' + code + '"]');
+    if (el) el.classList.toggle('pressed', isDown);
+  }
+
+  // Light up keys on any physical keypress, anywhere on the page.
+  document.addEventListener('keydown', (e) => setKeyVisual(e.code, true));
+  document.addEventListener('keyup',   (e) => setKeyVisual(e.code, false));
+
+  // Failsafe: if focus leaves the window mid key-press (e.g. alt-tab),
+  // don't leave a key stuck in the "pressed" state.
+  window.addEventListener('blur', () => {
+    keyboardEl.querySelectorAll('.key.pressed').forEach(el => el.classList.remove('pressed'));
+  });
+
+  /* ───────────────────────────────────────────
      INIT
   ─────────────────────────────────────────── */
   updateLenDisplay();
@@ -1133,6 +1349,7 @@
   buildRef(currentText);
   renderInput();
   updateStats();
+  buildKeyboard();
 </script>
 </body>
 </html>
