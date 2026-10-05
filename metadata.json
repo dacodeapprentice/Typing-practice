@@ -1,0 +1,6 @@
+{
+  "name": "KeyPulse Pro - Precision Typing & Speed Trainer",
+  "description": "Professional typing practice platform with customizable difficulties, real-time generation streaming, audio dictation, responsive interactive virtual keyboard, and instant accuracy metrics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,2763 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KeyPulse Pro - Precision Typing & Speed Trainer</title>
+    <meta name="description" content="Professional typing practice platform with customizable difficulties, real-time generation streaming, audio dictation, responsive interactive virtual keyboard, and instant accuracy metrics." />
+    <meta property="og:title" content="KeyPulse Pro - Precision Typing & Speed Trainer" />
+    <meta property="og:description" content="Professional typing practice platform with customizable difficulties, real-time generation streaming, audio dictation, responsive interactive virtual keyboard, and instant accuracy metrics." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts: Plus Jakarta Sans for UI/titles, Lora for reading text, JetBrains Mono for typing -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+      :root {
+        --bg-main: #070d19;
+        --bg-panel: #0d1627;
+        --bg-surface: #132038;
+        --bg-card: #182846;
+        --border-color: #1e355b;
+        --border-focus: #0ea5e9;
+        --text-primary: #f1f5f9;
+        --text-muted: #94a3b8;
+        --blue-primary: #0ea5e9;
+        --blue-glow: rgba(14, 165, 233, 0.35);
+        --green-primary: #10b981;
+        --green-bright: #34d399;
+        --green-glow: rgba(16, 185, 129, 0.4);
+        --red-error: #f43f5e;
+        --red-glow: rgba(244, 63, 94, 0.3);
+        --font-title: 'Plus Jakarta Sans', system-ui, sans-serif;
+        --font-serif: 'Lora', Georgia, serif;
+        --font-mono: 'JetBrains Mono', monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-primary);
+        font-family: var(--font-title);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        background-image: 
+          radial-gradient(ellipse at 15% 10%, rgba(14, 165, 233, 0.12) 0%, transparent 40%),
+          radial-gradient(ellipse at 85% 90%, rgba(16, 185, 129, 0.12) 0%, transparent 45%);
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(14, 165, 233, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16, 185, 129, 0.025) 1px, transparent 1px);
+        background-size: 36px 36px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .app-container, .mobile-header, .modal-backdrop {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Mobile Header */
+      .mobile-header {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+      }
+
+      .menu-btn {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: var(--font-title);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* Main Layout */
+      .app-container {
+        display: grid;
+        grid-template-columns: 310px 1fr;
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      /* Sidebar Menu */
+      .sidebar {
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border-color);
+        padding: 1.5rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        overflow-y: auto;
+        max-height: 100vh;
+        position: sticky;
+        top: 0;
+      }
+
+      .logo-box {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .logo-icon {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #0ea5e9, #10b981);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.25rem;
+        color: #fff;
+        box-shadow: 0 4px 14px var(--blue-glow);
+      }
+
+      .logo-text h1 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(90deg, #38bdf8, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .logo-text p {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      /* Section Headers in Menu */
+      .menu-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+
+      .section-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      /* Play / Action Controls */
+      .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .btn {
+        appearance: none;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 0.65rem 0.9rem;
+        border-radius: 8px;
+        font-family: var(--font-title);
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.18s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: white;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+        grid-column: span 2;
+        padding: 0.8rem;
+        font-size: 0.95rem;
+      }
+
+      .btn-primary.playing {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+      }
+
+      .btn-outline {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+      }
+
+      .btn-outline:hover {
+        background: var(--bg-card);
+        border-color: var(--blue-primary);
+      }
+
+      /* Form controls & Dropdowns */
+      select, .select-styled {
+        width: 100%;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 0.6rem 0.75rem;
+        border-radius: 8px;
+        font-family: var(--font-title);
+        font-size: 0.85rem;
+        outline: none;
+        transition: border 0.15s;
+        cursor: pointer;
+      }
+
+      select:focus {
+        border-color: var(--blue-primary);
+        box-shadow: 0 0 0 2px var(--blue-glow);
+      }
+
+      /* Countdown Duration Pills */
+      .time-presets {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.4rem;
+      }
+
+      .time-btn {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        padding: 0.45rem 0.2rem;
+        text-align: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .time-btn.active {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #38bdf8;
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+      }
+
+      /* Toggles */
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.55rem 0.65rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.82rem;
+      }
+
+      .toggle-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .toggle-info span {
+        font-weight: 600;
+      }
+
+      .toggle-info small {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #1e293b;
+        transition: 0.2s;
+        border-radius: 22px;
+        border: 1px solid var(--border-color);
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.2s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: var(--green-primary);
+        border-color: var(--green-bright);
+        box-shadow: 0 0 8px var(--green-glow);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+
+      /* Action Area (Right) */
+      .action-area {
+        padding: 1.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        max-width: 1100px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      /* Top Stat Bar */
+      .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 0.85rem;
+      }
+
+      .stat-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Timer Card with Controls next to Timer */
+      .stat-card.timer-card {
+        grid-column: span 2;
+        background: linear-gradient(135deg, rgba(13, 22, 39, 0.95), rgba(19, 32, 56, 0.9));
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: border-color 0.25s, box-shadow 0.25s;
+      }
+
+      /* Glowing red when timer is close to finishing */
+      .stat-card.timer-card.timer-critical {
+        border-color: #f43f5e !important;
+        box-shadow: 0 0 25px rgba(244, 63, 94, 0.45) !important;
+        animation: criticalTimerPulse 0.7s infinite alternate;
+      }
+
+      .stat-card.timer-card.timer-critical .stat-val.timer {
+        color: #f43f5e !important;
+        text-shadow: 0 0 14px rgba(244, 63, 94, 0.8);
+      }
+
+      .stat-card.timer-card.timer-critical .timer-ms {
+        color: #fda4af !important;
+      }
+
+      @keyframes criticalTimerPulse {
+        from {
+          box-shadow: 0 0 12px rgba(244, 63, 94, 0.35);
+          border-color: #f43f5e;
+        }
+        to {
+          box-shadow: 0 0 28px rgba(244, 63, 94, 0.75);
+          border-color: #fda4af;
+        }
+      }
+
+      .timer-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .timer-content-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.85rem;
+        flex-wrap: wrap;
+        margin-top: 0.25rem;
+      }
+
+      .timer-digits-box {
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+      }
+
+      .timer-controls-group {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      .timer-ctrl-btn {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 0.45rem 0.8rem;
+        border-radius: 8px;
+        font-family: var(--font-title);
+        font-weight: 700;
+        font-size: 0.82rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.15s ease;
+      }
+
+      .timer-ctrl-btn:hover {
+        transform: translateY(-1px);
+        background: var(--bg-card);
+        border-color: var(--blue-primary);
+      }
+
+      .timer-ctrl-btn:active {
+        transform: translateY(1px);
+      }
+
+      .timer-ctrl-btn.btn-play-primary {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: white;
+        border: none;
+        box-shadow: 0 3px 10px rgba(14, 165, 233, 0.35);
+      }
+
+      .timer-ctrl-btn.btn-play-primary.playing {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4);
+      }
+
+      .stat-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+      }
+
+      .stat-val {
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-top: 0.2rem;
+        font-family: var(--font-title);
+      }
+
+      .stat-val.blue {
+        color: #38bdf8;
+      }
+
+      .stat-val.green {
+        color: #34d399;
+      }
+
+      .stat-val.timer {
+        color: #f1f5f9;
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+        font-family: var(--font-mono);
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .timer-ms {
+        font-size: 1.05rem;
+        font-family: var(--font-mono);
+        color: #94a3b8;
+        font-weight: 700;
+      }
+
+      /* Floating Bonus tag */
+      .bonus-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px var(--green-glow);
+        transform: scale(0);
+        transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .bonus-badge.show {
+        transform: scale(1);
+        animation: pulseBonus 0.8s infinite alternate;
+      }
+
+      @keyframes pulseBonus {
+        from { transform: scale(1); }
+        to { transform: scale(1.1); }
+      }
+
+      /* TOP: Content To Type */
+      .action-panel {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        position: relative;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .panel-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .panel-badge {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: rgba(14, 165, 233, 0.15);
+        color: #38bdf8;
+        border: 1px solid rgba(14, 165, 233, 0.3);
+      }
+
+      .panel-badge.live {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.3);
+        animation: liveBlink 1.5s infinite;
+      }
+
+      @keyframes liveBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+
+      .content-display {
+        font-family: var(--font-serif);
+        font-size: 1.35rem;
+        line-height: 1.7;
+        color: #cbd5e1;
+        min-height: 100px;
+        max-height: 160px;
+        overflow-y: auto;
+        user-select: none;
+        position: relative;
+        word-break: break-word;
+      }
+
+      .content-display.hidden-mode {
+        filter: blur(8px);
+        opacity: 0.45;
+        transition: filter 0.3s;
+      }
+
+      .blind-mode-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(13, 22, 39, 0.88);
+        border-radius: 8px;
+        z-index: 5;
+        font-family: var(--font-title);
+        font-size: 0.95rem;
+        color: #38bdf8;
+        gap: 8px;
+      }
+
+      .blind-mode-overlay.show {
+        display: flex;
+      }
+
+      .source-char {
+        position: relative;
+        transition: color 0.1s;
+      }
+
+      .source-char.active {
+        background: rgba(14, 165, 233, 0.25);
+        border-bottom: 2px solid var(--blue-primary);
+        color: #ffffff;
+      }
+
+      .source-char.typed-ok {
+        color: var(--green-bright);
+      }
+
+      .source-char.typed-err {
+        color: var(--red-error);
+        background: rgba(244, 63, 94, 0.2);
+        border-radius: 2px;
+      }
+
+      /* Audio Dictation Speaker Indicator */
+      .audio-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: #34d399;
+        margin-left: auto;
+      }
+
+      .wave-bars {
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 12px;
+      }
+
+      .wave-bar {
+        width: 2px;
+        height: 100%;
+        background: #34d399;
+        animation: waveAnim 0.6s infinite ease-in-out alternate;
+      }
+
+      .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+      .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+
+      @keyframes waveAnim {
+        from { height: 3px; }
+        to { height: 12px; }
+      }
+
+      /* MIDDLE: Virtual Keyboard */
+      .keyboard-section {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.45rem;
+        user-select: none;
+        overflow-x: auto;
+      }
+
+      .kb-row {
+        display: flex;
+        gap: 0.35rem;
+        justify-content: center;
+        width: 100%;
+      }
+
+      .key {
+        height: 42px;
+        min-width: 36px;
+        background: linear-gradient(180deg, #18263e 0%, #101c30 100%);
+        border: 1px solid #1f3354;
+        border-bottom: 3px solid #0b1424;
+        border-radius: 6px;
+        color: #cbd5e1;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        transition: all 0.08s ease;
+        flex-grow: 1;
+        max-width: 50px;
+        text-transform: uppercase;
+      }
+
+      .key.key-wide { max-width: 68px; font-size: 0.72rem; }
+      .key.key-wider { max-width: 82px; font-size: 0.72rem; }
+      .key.key-space { max-width: 290px; }
+
+      /* Key Shift Sub-Labels */
+      .key .key-shift {
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 0.55rem;
+        color: #64748b;
+        font-family: var(--font-mono);
+      }
+
+      /* Tactile bumps on home-row F and J keys like real physical keyboards */
+      .key[data-code="KeyF"]::after,
+      .key[data-code="KeyJ"]::after,
+      .key[data-key="f"]::after,
+      .key[data-key="j"]::after {
+        content: '';
+        position: absolute;
+        bottom: 3px;
+        width: 10px;
+        height: 2px;
+        border-radius: 1px;
+        background: #38bdf8;
+        opacity: 0.8;
+      }
+
+      /* Key active states */
+      .key.active-press-correct {
+        background: linear-gradient(180deg, #10b981 0%, #059669 100%) !important;
+        border-color: #34d399 !important;
+        border-bottom-width: 1px !important;
+        transform: translateY(2px);
+        color: #ffffff !important;
+        box-shadow: 0 0 18px var(--green-glow), inset 0 1px 3px rgba(255,255,255,0.4) !important;
+      }
+
+      .key.active-press-wrong {
+        background: linear-gradient(180deg, #f43f5e 0%, #be123c 100%) !important;
+        border-color: #fb7185 !important;
+        border-bottom-width: 1px !important;
+        transform: translateY(2px);
+        color: #ffffff !important;
+        box-shadow: 0 0 20px var(--red-glow), inset 0 1px 3px rgba(255,255,255,0.4) !important;
+      }
+
+      .key.active-press-neutral {
+        background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%) !important;
+        border-color: #38bdf8 !important;
+        border-bottom-width: 1px !important;
+        transform: translateY(2px);
+        color: #ffffff !important;
+        box-shadow: 0 0 16px var(--blue-glow), inset 0 1px 3px rgba(255,255,255,0.4) !important;
+      }
+
+      .key.target-next {
+        border-color: #38bdf8;
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+        color: #38bdf8;
+      }
+
+      /* BOTTOM: User Typed Area */
+      .user-output-panel {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      }
+
+      .typed-stream-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        min-height: 95px;
+        max-height: 150px;
+        overflow-y: auto;
+        font-family: var(--font-mono);
+        font-size: 1.2rem;
+        line-height: 1.6;
+        word-break: break-word;
+        white-space: pre-wrap;
+        position: relative;
+        cursor: text;
+      }
+
+      .typed-stream-box:focus-within {
+        border-color: var(--blue-primary);
+        box-shadow: 0 0 0 2px var(--blue-glow);
+      }
+
+      /* Green for correct, Red for mistakes */
+      .char-correct {
+        color: var(--green-bright);
+        background: rgba(16, 185, 129, 0.15);
+        border-radius: 2px;
+      }
+
+      .char-wrong {
+        color: #ffffff;
+        background: var(--red-error);
+        border-radius: 2px;
+        box-shadow: 0 0 6px var(--red-glow);
+      }
+
+      .char-caret {
+        display: inline-block;
+        width: 2px;
+        height: 1.2em;
+        background-color: var(--blue-primary);
+        vertical-align: text-bottom;
+        animation: caretBlink 0.9s infinite;
+      }
+
+      @keyframes caretBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+
+      /* Hidden real input field for typing focus without scrolling viewport */
+      .hidden-input {
+        position: fixed;
+        opacity: 0;
+        pointer-events: none;
+        left: -9999px;
+        top: 0;
+        width: 1px;
+        height: 1px;
+        border: none;
+        outline: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      /* Click to focus hint */
+      .focus-hint {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .focus-hint kbd {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+      }
+
+      /* Modal for results */
+      .modal-backdrop {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(7, 13, 25, 0.85);
+        backdrop-filter: blur(6px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 1.5rem;
+      }
+
+      .modal-backdrop.show {
+        display: flex;
+      }
+
+      .modal-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 520px;
+        padding: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        text-align: center;
+        animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      @keyframes modalPop {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      .modal-card h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38bdf8, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+      }
+
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1.5rem 0;
+      }
+
+      .result-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        padding: 1rem;
+        border-radius: 10px;
+      }
+
+      .result-box small {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+
+      .result-box h3 {
+        font-size: 2rem;
+        margin-top: 0.25rem;
+      }
+
+      /* Post-Round Detailed Text Review (Shows what was typed vs original) */
+      .round-review-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.85rem 1.1rem;
+        text-align: left;
+        margin: 1.1rem 0;
+        max-height: 130px;
+        overflow-y: auto;
+        font-family: var(--font-serif);
+        font-size: 1rem;
+        line-height: 1.7;
+        word-break: break-word;
+      }
+
+      .round-review-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.4rem;
+        font-family: var(--font-title);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+      }
+
+      /* Responsive rules */
+      @media (max-width: 992px) {
+        .app-container {
+          grid-template-columns: 1fr;
+        }
+
+        .mobile-header {
+          display: flex;
+        }
+
+        .sidebar {
+          position: fixed;
+          left: -320px;
+          top: 0;
+          bottom: 0;
+          width: 300px;
+          z-index: 50;
+          transition: left 0.25s ease;
+          box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        }
+
+        .sidebar.open {
+          left: 0;
+        }
+
+        .action-area {
+          padding: 1rem;
+        }
+
+        .key {
+          height: 36px;
+          min-width: 26px;
+          font-size: 0.7rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .content-display {
+          font-size: 1.15rem;
+        }
+        .typed-stream-box {
+          font-size: 1rem;
+        }
+        .key {
+          height: 32px;
+          min-width: 22px;
+          font-size: 0.65rem;
+          padding: 0 0.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Mobile top bar -->
+    <header class="mobile-header">
+      <div class="logo-box" style="border: none; padding: 0;">
+        <div class="logo-icon" style="width: 30px; height: 30px; font-size: 1rem;">K</div>
+        <div class="logo-text">
+          <h1 style="font-size: 1rem;">KeyPulse Pro</h1>
+        </div>
+      </div>
+      <button class="menu-btn" id="mobileMenuToggle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        Menu
+      </button>
+    </header>
+
+    <div class="app-container">
+      <!-- SIDEBAR MENU -->
+      <aside class="sidebar" id="sidebarMenu">
+        <div class="logo-box">
+          <div class="logo-icon">K</div>
+          <div class="logo-text">
+            <h1>KeyPulse Pro</h1>
+            <p>Speed & Accuracy Trainer</p>
+          </div>
+        </div>
+
+        <!-- Action / Play Controls -->
+        <div class="menu-section">
+          <span class="section-label">Controls</span>
+          <div class="action-buttons">
+            <button type="button" class="btn btn-primary" id="sidebarPlayBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span id="sidebarPlayBtnText">Start Practice</span>
+            </button>
+            <button type="button" class="btn btn-outline" id="sidebarPauseBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              Pause
+            </button>
+            <button type="button" class="btn btn-outline" id="sidebarReplayBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              Replay
+            </button>
+          </div>
+        </div>
+
+        <!-- Difficulty Settings -->
+        <div class="menu-section">
+          <span class="section-label">Difficulty & Field</span>
+          <select id="difficultySelect">
+            <optgroup label="General Speed">
+              <option value="beginner">Beginner (Basic Vocabulary)</option>
+              <option value="intermediate" selected>Intermediate (Standard Sentences)</option>
+              <option value="advanced">Advanced (Complex & Punctuation)</option>
+            </optgroup>
+            <optgroup label="Professional Career Specializations">
+              <option value="customer_support">Customer Support & Chat</option>
+              <option value="admin_data">Admin / Data Entry & Formats</option>
+              <option value="medical">Medical Transcription</option>
+              <option value="legal">Legal & Contract Drafting</option>
+              <option value="code">Software Developer (Syntax & Code)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- Language Settings -->
+        <div class="menu-section">
+          <span class="section-label">Practice Language</span>
+          <select id="languageSelect">
+            <option value="en">English (US / UK)</option>
+            <option value="es">Español (Spanish)</option>
+            <option value="fr">Français (French)</option>
+            <option value="de">Deutsch (German)</option>
+            <option value="it">Italiano (Italian)</option>
+            <option value="pt">Português (Portuguese)</option>
+          </select>
+        </div>
+
+        <!-- Countdown Timer Duration -->
+        <div class="menu-section">
+          <span class="section-label">Session Duration</span>
+          <div class="time-presets" id="timePresets">
+            <button class="time-btn" data-time="15">15s</button>
+            <button class="time-btn active" data-time="30">30s</button>
+            <button class="time-btn" data-time="60">60s</button>
+            <button class="time-btn" data-time="120">120s</button>
+          </div>
+        </div>
+
+        <!-- Interactive Settings & Toggles -->
+        <div class="menu-section">
+          <span class="section-label">Trainer Settings</span>
+
+          <!-- Visibility Toggle -->
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span>Text Visible</span>
+              <small>Sight vs. Blind/Memory mode</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="textVisibleToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Audio Dictation Toggle -->
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span>Audio Dictation</span>
+              <small>Spoken text generator</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="audioToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Voice / Accent Selector -->
+          <div class="toggle-row" id="voiceSelectRow" style="flex-direction: column; align-items: stretch; gap: 0.35rem;">
+            <div class="toggle-info" style="flex-direction: row; justify-content: space-between; align-items: center;">
+              <span>Voice / Accent</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <button type="button" class="btn btn-outline" id="testVoiceBtn" title="Test pronunciation in chosen language" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; line-height: 1; border-color: var(--blue-primary); color: #38bdf8;">🔊 Preview</button>
+                <small id="currentVoiceLabel" style="color: #38bdf8;">Auto-detecting...</small>
+              </div>
+            </div>
+            <select id="voiceSelect" style="font-size: 0.78rem; padding: 0.4rem 0.6rem; width: 100%;">
+              <option value="auto">Auto-Matched Native Voice</option>
+            </select>
+          </div>
+
+          <!-- Real-Time Generation Toggle -->
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span>Real-Time Stream</span>
+              <small>Type as content generates</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="realTimeToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Extra Seconds Streak Bonus Toggle -->
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span>Streak Bonus Time</span>
+              <small>+3s on high accuracy streaks</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="bonusTimeToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Next Text Button -->
+        <div class="menu-section" style="margin-top: auto;">
+          <button class="btn btn-outline" id="nextTextBtn" style="width: 100%;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            Generate New Text
+          </button>
+        </div>
+      </aside>
+
+      <!-- RIGHT: PLACE OF ACTION -->
+      <main class="action-area">
+        <!-- Live Metrics Bar with Controls next to the Timer -->
+        <div class="stats-bar">
+          <div class="stat-card timer-card" id="timerCard">
+            <div class="timer-header-row">
+              <span class="stat-label">Countdown Session</span>
+              <div class="bonus-badge" id="bonusBadge">+3s BONUS!</div>
+            </div>
+            <div class="timer-content-row">
+              <div class="timer-digits-box">
+                <div class="stat-val timer" id="timerDisplay">
+                  <span id="timerMinSec">00:30</span><span class="timer-ms" id="timerMs">.00</span>
+                </div>
+              </div>
+              <div class="timer-controls-group">
+                <button type="button" class="timer-ctrl-btn btn-play-primary" id="playBtn" title="Start Session">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span id="playBtnText">Start</span>
+                </button>
+                <button type="button" class="timer-ctrl-btn" id="pauseBtn" title="Pause / Resume">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  <span id="pauseBtnText">Pause</span>
+                </button>
+                <button type="button" class="timer-ctrl-btn" id="replayBtn" title="Restart Practice">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  <span>Replay</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Typing Speed</span>
+            <div class="stat-val blue"><span id="wpmVal">0</span> <small style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">WPM</small></div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Accuracy</span>
+            <div class="stat-val green"><span id="accVal">100</span><small style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">%</small></div>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Streak</span>
+            <div class="stat-val" style="color: #f59e0b;"><span id="streakVal">0</span> <small style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">words</small></div>
+          </div>
+        </div>
+
+        <!-- TOP: Content to Type -->
+        <section class="action-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+              <span>Target Text</span>
+              <span class="panel-badge" id="categoryBadge">Intermediate</span>
+              <span class="panel-badge live" id="liveStreamBadge" style="display: none;">● Live Stream</span>
+            </div>
+            
+            <div class="audio-indicator" id="audioIndicator" style="display: none;">
+              <span>Audio Dictation</span>
+              <div class="wave-bars">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-display" id="contentDisplay">
+            <!-- Source text characters will be injected here -->
+          </div>
+
+          <div class="blind-mode-overlay" id="blindOverlay">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+            <span>Blind / Audio Mode Active: Listen carefully or type from memory!</span>
+          </div>
+        </section>
+
+        <!-- MIDDLE: Interactive Virtual Keyboard -->
+        <section class="keyboard-section" id="keyboardContainer">
+          <!-- Row 1: Numbers & Symbols -->
+          <div class="kb-row">
+            <div class="key" data-key="`" data-code="Backquote"><span class="key-shift">~</span>`</div>
+            <div class="key" data-key="1" data-code="Digit1"><span class="key-shift">!</span>1</div>
+            <div class="key" data-key="2" data-code="Digit2"><span class="key-shift">@</span>2</div>
+            <div class="key" data-key="3" data-code="Digit3"><span class="key-shift">#</span>3</div>
+            <div class="key" data-key="4" data-code="Digit4"><span class="key-shift">$</span>4</div>
+            <div class="key" data-key="5" data-code="Digit5"><span class="key-shift">%</span>5</div>
+            <div class="key" data-key="6" data-code="Digit6"><span class="key-shift">^</span>6</div>
+            <div class="key" data-key="7" data-code="Digit7"><span class="key-shift">&</span>7</div>
+            <div class="key" data-key="8" data-code="Digit8"><span class="key-shift">*</span>8</div>
+            <div class="key" data-key="9" data-code="Digit9"><span class="key-shift">(</span>9</div>
+            <div class="key" data-key="0" data-code="Digit0"><span class="key-shift">)</span>0</div>
+            <div class="key" data-key="-" data-code="Minus"><span class="key-shift">_</span>-</div>
+            <div class="key" data-key="=" data-code="Equal"><span class="key-shift">+</span>=</div>
+            <div class="key key-wide" data-key="Backspace" data-code="Backspace">⌫</div>
+          </div>
+
+          <!-- Row 2: QWERTY -->
+          <div class="kb-row">
+            <div class="key key-wide" data-key="Tab" data-code="Tab">Tab</div>
+            <div class="key" data-key="q" data-code="KeyQ">Q</div>
+            <div class="key" data-key="w" data-code="KeyW">W</div>
+            <div class="key" data-key="e" data-code="KeyE">E</div>
+            <div class="key" data-key="r" data-code="KeyR">R</div>
+            <div class="key" data-key="t" data-code="KeyT">T</div>
+            <div class="key" data-key="y" data-code="KeyY">Y</div>
+            <div class="key" data-key="u" data-code="KeyU">U</div>
+            <div class="key" data-key="i" data-code="KeyI">I</div>
+            <div class="key" data-key="o" data-code="KeyO">O</div>
+            <div class="key" data-key="p" data-code="KeyP">P</div>
+            <div class="key" data-key="[" data-code="BracketLeft"><span class="key-shift">{</span>[</div>
+            <div class="key" data-key="]" data-code="BracketRight"><span class="key-shift">}</span>]</div>
+            <div class="key" data-key="\" data-code="Backslash"><span class="key-shift">|</span>\</div>
+          </div>
+
+          <!-- Row 3: ASDF (F and J have tactile home-row guides) -->
+          <div class="kb-row">
+            <div class="key key-wider" data-key="CapsLock" data-code="CapsLock">Caps</div>
+            <div class="key" data-key="a" data-code="KeyA">A</div>
+            <div class="key" data-key="s" data-code="KeyS">S</div>
+            <div class="key" data-key="d" data-code="KeyD">D</div>
+            <div class="key" data-key="f" data-code="KeyF">F</div>
+            <div class="key" data-key="g" data-code="KeyG">G</div>
+            <div class="key" data-key="h" data-code="KeyH">H</div>
+            <div class="key" data-key="j" data-code="KeyJ">J</div>
+            <div class="key" data-key="k" data-code="KeyK">K</div>
+            <div class="key" data-key="l" data-code="KeyL">L</div>
+            <div class="key" data-key=";" data-code="Semicolon"><span class="key-shift">:</span>;</div>
+            <div class="key" data-key="'" data-code="Quote"><span class="key-shift">"</span>'</div>
+            <div class="key key-wider" data-key="Enter" data-code="Enter">↵ Enter</div>
+          </div>
+
+          <!-- Row 4: ZXCV -->
+          <div class="kb-row">
+            <div class="key key-wider" data-key="Shift" data-code="ShiftLeft">Shift</div>
+            <div class="key" data-key="z" data-code="KeyZ">Z</div>
+            <div class="key" data-key="x" data-code="KeyX">X</div>
+            <div class="key" data-key="c" data-code="KeyC">C</div>
+            <div class="key" data-key="v" data-code="KeyV">V</div>
+            <div class="key" data-key="b" data-code="KeyB">B</div>
+            <div class="key" data-key="n" data-code="KeyN">N</div>
+            <div class="key" data-key="m" data-code="KeyM">M</div>
+            <div class="key" data-key="," data-code="Comma"><span class="key-shift">&lt;</span>,</div>
+            <div class="key" data-key="." data-code="Period"><span class="key-shift">&gt;</span>.</div>
+            <div class="key" data-key="/" data-code="Slash"><span class="key-shift">?</span>/</div>
+            <div class="key key-wider" data-key="Shift" data-code="ShiftRight">Shift</div>
+          </div>
+
+          <!-- Row 5: Spacebar & Modifiers -->
+          <div class="kb-row">
+            <div class="key key-wide" data-key="Control" data-code="ControlLeft">Ctrl</div>
+            <div class="key key-wide" data-key="Alt" data-code="AltLeft">Alt</div>
+            <div class="key key-space" data-key=" " data-code="Space">Space</div>
+            <div class="key key-wide" data-key="Alt" data-code="AltRight">Alt</div>
+            <div class="key key-wide" data-key="Control" data-code="ControlRight">Ctrl</div>
+          </div>
+        </section>
+
+        <!-- BOTTOM: What is being written by user (Green for correct, Red for mistakes) -->
+        <section class="user-output-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span>Your Input Stream</span>
+            </div>
+            <div class="focus-hint">
+              <span>Status: <strong id="typingStatusText" style="color: #38bdf8;">Press Start to Begin</strong></span>
+            </div>
+          </div>
+
+          <div class="typed-stream-box" id="typedStreamContainer">
+            <input type="text" class="hidden-input" id="hiddenInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <span id="renderedTypedContent"></span>
+            <span class="char-caret" id="blinkingCaret"></span>
+          </div>
+
+          <div class="focus-hint">
+            <span>Color code: <span style="color: var(--green-bright); font-weight: 700;">● Green</span> = Correct, <span style="color: var(--red-error); font-weight: 700;">● Red</span> = Mistake</span>
+            <span>Focus: Click stream or press <kbd>Space</kbd> / keys</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Results Modal (Round Over Menu) -->
+    <div class="modal-backdrop" id="resultsModal">
+      <div class="modal-card">
+        <h2>Round Over!</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;" id="modalSubtitle">Round completed. Review your performance metrics below.</p>
+        
+        <div class="results-grid">
+          <div class="result-box">
+            <small>Speed</small>
+            <h3 style="color: #38bdf8;"><span id="modalWpm">0</span> WPM</h3>
+          </div>
+          <div class="result-box">
+            <small>Accuracy</small>
+            <h3 style="color: #34d399;"><span id="modalAcc">0</span>%</h3>
+          </div>
+          <div class="result-box">
+            <small>Characters Typed</small>
+            <h3><span id="modalChars">0</span></h3>
+          </div>
+          <div class="result-box">
+            <small>Bonus Time Earned</small>
+            <h3 style="color: #f59e0b;"><span id="modalBonus">0</span>s</h3>
+          </div>
+        </div>
+
+        <!-- Detailed Character Comparison Box -->
+        <div class="round-review-box">
+          <div class="round-review-header">
+            <span>Accuracy Comparison Review:</span>
+            <span style="color: #34d399;">Green = Correct · Red = Mistake</span>
+          </div>
+          <div id="roundReviewContent"></div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-primary" id="modalRestartBtn" style="padding: 0.75rem 1.75rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Continue to Next Round
+          </button>
+          <button class="btn btn-outline" id="modalCloseBtn" style="padding: 0.75rem 1.25rem;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Self-Contained JavaScript Logic -->
+    <script>
+      (function() {
+        // --- Multilingual and Job-Specific Text Datasets ---
+        const TEXT_DATA = {
+          en: {
+            beginner: [
+              "The quick brown fox jumps over the lazy dog every sunny day in the park.",
+              "Typing fast and accurately is a great skill for modern office work.",
+              "Keep your hands on the home row keys to build solid muscle memory.",
+              "Practice every single morning to see huge improvements in your typing speed."
+            ],
+            intermediate: [
+              "Professional keyboard mastery requires a balance between rapid keystrokes and zero errors.",
+              "Communication is the cornerstone of effective team collaboration in modern high-tech companies.",
+              "When you learn to touch type properly, your cognitive load shifts from finding keys to creative thinking.",
+              "Consistency always beats occasional bursts of intensity when mastering any physical discipline."
+            ],
+            advanced: [
+              "Precision, velocity, and dexterity converge when an accomplished typist tackles technical prose.",
+              "“The only way to do great work is to love what you do,” remarked Steve Jobs in his historic address.",
+              "Synthesizing intricate multivariate data matrices necessitates both intellectual rigor and rapid transcription!",
+              "Discipline is choosing between what you desire right now and what you genuinely yearn for most."
+            ],
+            customer_support: [
+              "Thank you for contacting KeyPulse Priority Support! I would be delighted to assist you with your account verification today.",
+              "We apologize for the unexpected delay in processing your recent refund request. Let me immediately expedite this for you.",
+              "Please allow me two to three minutes while I review your previous support tickets to provide a thorough solution."
+            ],
+            admin_data: [
+              "Invoice #89204 dated October 24, 2026: Total amount due is $14,850.75 payable via wire transfer within 30 business days.",
+              "Quarterly fiscal review confirmed an exponential 28.4% uptick across regional subsidiaries (EMEA, APAC, and LATAM).",
+              "Batch transaction records: ID-49102 processed at 14:02:19 UTC with authorization code 889-ALPHA-ZULU."
+            ],
+            medical: [
+              "Patient presents with mild dyspnea, bilateral pulmonary rales, and an oxygen saturation level stabilized at 96% on room air.",
+              "Administer 250mg cephalexin orally twice daily following food intake; monitor hepatic enzymes throughout therapeutic duration.",
+              "Electrocardiogram revealed normal sinus rhythm without ST-segment elevation or anomalous conduction delays."
+            ],
+            legal: [
+              "The party of the first part hereby agrees to indemnify, defend, and hold harmless the counterparty against any liabilities.",
+              "Pursuant to Clause 14.2 of the master service agreement, neither party shall disclose confidential proprietary disclosures.",
+              "In witness whereof, the authorized signatories have duly executed this binding covenant as of the effective date."
+            ],
+            code: [
+              "const calculateVelocity = (words: number, seconds: number): number => Math.round((words / seconds) * 60);",
+              "export async function fetchUserData(userId: string) { const res = await fetch(`/api/users/${userId}`); return res.json(); }",
+              "document.querySelectorAll('.active-key').forEach(el => el.classList.remove('pressed-state'));"
+            ]
+          },
+          es: {
+            beginner: [
+              "El sol brilla en el cielo azul y los pájaros cantan alegremente en el jardín.",
+              "Aprender a escribir rápido en el teclado abre muchas puertas laborales.",
+              "La práctica constante todos los días te ayudará a no cometer errores."
+            ],
+            intermediate: [
+              "La agilidad mental y la precisión digital son indispensables para redactar informes ejecutivos.",
+              "El éxito profesional depende de la capacidad de comunicarse con claridad, elegancia y rapidez.",
+              "Mantener los dedos en la posición adecuada permite escribir sin mirar el teclado."
+            ],
+            advanced: [
+              "El conocimiento exhaustivo de la gramática y la ortografía garantiza una comunicación intachable.",
+              "Las innovaciones tecnológicas contemporáneas transforman vertiginosamente los paradigmas laborales globales.",
+              "La perseverancia en el entrenamiento diario forja destrezas cognitivas extraordinarias."
+            ],
+            customer_support: [
+              "¡Gracias por comunicarte con nuestro equipo de atención! Estaré encantado de ayudarte a resolver tu consulta hoy mismo.",
+              "Lamentamos profundamente el inconveniente ocasionado; déjame revisar tu número de seguimiento de inmediato."
+            ],
+            admin_data: [
+              "Factura fiscal N° 45802 con fecha 12 de marzo de 2026: Saldo total liquidado de 3.450,80 € mediante transferencia bancaria."
+            ],
+            medical: [
+              "El paciente refiere cefalea tensional moderada y dolor epigástrico tras la ingesta de analgésicos no esteroideos."
+            ],
+            legal: [
+              "Las partes comparecientes suscriben el presente contrato de confidencialidad con sujeción a las leyes vigentes."
+            ],
+            code: [
+              "function procesarDatos(lista) { return lista.filter(item => item.activo).map(item => item.valor); }"
+            ]
+          },
+          fr: {
+            beginner: [
+              "Le petit chat noir dort paisiblement sur le fauteuil du salon.",
+              "Taper vite au clavier est un atout formidable dans le monde du travail.",
+              "Prenez le temps de bien placer vos doigts sur la rangée centrale."
+            ],
+            intermediate: [
+              "La maîtrise de la dactylographie renforce la productivité et diminue la fatigue musculaire quotidienne.",
+              "Une communication bien formulée et exempte de fautes reflète un professionnalisme irréprochable."
+            ],
+            advanced: [
+              "L'éloquence littéraire française s'épanouit pleinement à travers la précision stylistique et la fluidité textuelle."
+            ],
+            customer_support: [
+              "Bonjour et bienvenue sur notre service client ! Comment puis-je vous assister au mieux aujourd'hui ?"
+            ],
+            admin_data: [
+              "Rapport budgétaire trimestriel n° 7741 : Excédent d'exploitation évalué à 42 800,50 € au 31 décembre 2026."
+            ],
+            medical: [
+              "Examen clinique satisfaisant : tension artérielle à 120/80 mmHg, auscultation cardiaque et pulmonaire sans anomalie."
+            ],
+            legal: [
+              "Les clauses stipulées ci-après engagent solidairement l'ensemble des parties signataires du présent protocole."
+            ],
+            code: [
+              "const calculerMoyenne = (valeurs) => valeurs.reduce((a, b) => a + b, 0) / valeurs.length;"
+            ]
+          },
+          de: {
+            beginner: [
+              "Der schnelle Fuchs springt über den schlafenden Hund im grünen Wald.",
+              "Schnelles und sicheres Tippen ist eine wichtige Fähigkeit für jeden Beruf.",
+              "Üben Sie jeden Tag ein paar Minuten für die besten Ergebnisse."
+            ],
+            intermediate: [
+              "Die Beherrschung des Zehnfingersystems steigert die Effizienz am Arbeitsplatz enorm.",
+              "Präzise Formulierungen und fehlerfreie Texte sind der Schlüssel zum geschäftlichen Erfolg."
+            ],
+            advanced: [
+              "Die Synchronisation kognitiver Prozesse mit fingerfertiger Präzision erfordert kontinuierliche Konzentration."
+            ],
+            customer_support: [
+              "Vielen Dank für Ihre Kontaktaufnahme! Ich helfe Ihnen bei Ihrem Anliegen sehr gerne weiter."
+            ],
+            admin_data: [
+              "Rechnungsnummer 90422 vom 15. November 2026: Gesamtsumme 18.250,00 EUR fällig innerhalb von 14 Tagen."
+            ],
+            medical: [
+              "Anamnese unauffällig, vitale Parameter stabil mit Herzfrequenz 72 Schläge pro Minute."
+            ],
+            legal: [
+              "Gemäß Paragraf 8 des Dienstleistungsvertrages verpflichten sich die Parteien zur absoluten Verschwiegenheit."
+            ],
+            code: [
+              "interface Benutzer { id: number; name: string; email: string; istAktiv: boolean; }"
+            ]
+          },
+          it: {
+            beginner: [
+              "La bella giornata di sole invita a passeggiare vicino al mare cristallino.",
+              "Digitare velocemente sulla tastiera consente di risparmiare tempo prezioso ogni giorno."
+            ],
+            intermediate: [
+              "La precisione e il ritmo costante sono i veri segreti per una digitazione professionale e rapida."
+            ],
+            advanced: [
+              "L'armonia tra mente e dita consente di trascrivere pensieri complessi senza alcuna esitazione."
+            ],
+            customer_support: [
+              "Grazie per aver contattato il nostro supporto! Sono qui per aiutarla a risolvere ogni problema."
+            ],
+            admin_data: [
+              "Fattura n. 32014 del 18 ottobre 2026: Totale dovuto pari a 5.670,40 euro con scadenza a 30 giorni."
+            ],
+            medical: [
+              "Parametri vitali nella norma, respirazione regolare e saturazione dell'ossigeno al 98%."
+            ],
+            legal: [
+              "Le parti contraenti dichiarano di aver preso visione e di accettare integralmente le presenti condizioni."
+            ],
+            code: [
+              "const filtraElementi = (lista, chiave) => lista.filter(item => item[chiave] !== null);"
+            ]
+          },
+          pt: {
+            beginner: [
+              "O dia está lindo com céu azul e uma brisa suave soprando nas árvores.",
+              "Digitar rápido e com precisão é uma habilidade fundamental para o trabalho."
+            ],
+            intermediate: [
+              "A velocidade no teclado desenvolve-se através da memória muscular e da atenção focada."
+            ],
+            advanced: [
+              "A conjugação entre destreza digital e raciocínio veloz produz resultados profissionais excepcionais."
+            ],
+            customer_support: [
+              "Olá! Agradecemos o seu contato com o nosso suporte prioritário. Como posso ajudá-lo hoje?"
+            ],
+            admin_data: [
+              "Relatório contábil consolidado n° 10842: Saldo disponível de R$ 38.900,00 registrado em outubro de 2026."
+            ],
+            medical: [
+              "Paciente em bom estado geral, lúcido e orientado no tempo e espaço, sem queixas álgicas agudas."
+            ],
+            legal: [
+              "Pelo presente instrumento particular, as partes outorgantes pactuam as cláusulas a seguir descritas."
+            ],
+            code: [
+              "const formatarMoeda = (valor) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });"
+            ]
+          }
+        };
+
+        // --- Application State ---
+        const state = {
+          isPlaying: false,
+          isPaused: false,
+          isRoundOver: false,
+          language: 'en',
+          difficulty: 'intermediate',
+          targetText: '',
+          streamText: '', // for real-time streaming mode
+          userInput: '',
+          duration: 30, // in seconds
+          remainingMs: 30000, // in milliseconds
+          endTime: 0,
+          timerInterval: null,
+          realTimeStreamInterval: null,
+          textVisible: true,
+          audioEnabled: true,
+          realTimeEnabled: false,
+          bonusTimeEnabled: true,
+          streak: 0,
+          bestStreak: 0,
+          totalTypedChars: 0,
+          correctChars: 0,
+          errorCount: 0,
+          bonusSecondsEarned: 0,
+          hasStartedTyping: false,
+          startTime: 0
+        };
+
+        // --- DOM Elements ---
+        const playBtn = document.getElementById('playBtn');
+        const playBtnText = document.getElementById('playBtnText');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const pauseBtnText = document.getElementById('pauseBtnText');
+        const replayBtn = document.getElementById('replayBtn');
+
+        const sidebarPlayBtn = document.getElementById('sidebarPlayBtn');
+        const sidebarPlayBtnText = document.getElementById('sidebarPlayBtnText');
+        const sidebarPauseBtn = document.getElementById('sidebarPauseBtn');
+        const sidebarReplayBtn = document.getElementById('sidebarReplayBtn');
+
+        const nextTextBtn = document.getElementById('nextTextBtn');
+        const difficultySelect = document.getElementById('difficultySelect');
+        const languageSelect = document.getElementById('languageSelect');
+        const timePresets = document.getElementById('timePresets');
+        const textVisibleToggle = document.getElementById('textVisibleToggle');
+        const audioToggle = document.getElementById('audioToggle');
+        const realTimeToggle = document.getElementById('realTimeToggle');
+        const bonusTimeToggle = document.getElementById('bonusTimeToggle');
+        
+        const timerCard = document.getElementById('timerCard');
+        const timerMinSec = document.getElementById('timerMinSec');
+        const timerMs = document.getElementById('timerMs');
+        const bonusBadge = document.getElementById('bonusBadge');
+        
+        const wpmVal = document.getElementById('wpmVal');
+        const accVal = document.getElementById('accVal');
+        const streakVal = document.getElementById('streakVal');
+        const contentDisplay = document.getElementById('contentDisplay');
+        const blindOverlay = document.getElementById('blindOverlay');
+        const categoryBadge = document.getElementById('categoryBadge');
+        const liveStreamBadge = document.getElementById('liveStreamBadge');
+        const audioIndicator = document.getElementById('audioIndicator');
+        const hiddenInput = document.getElementById('hiddenInput');
+        const renderedTypedContent = document.getElementById('renderedTypedContent');
+        const typingStatusText = document.getElementById('typingStatusText');
+        const typedStreamContainer = document.getElementById('typedStreamContainer');
+        const resultsModal = document.getElementById('resultsModal');
+        const modalRestartBtn = document.getElementById('modalRestartBtn');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const modalWpm = document.getElementById('modalWpm');
+        const modalAcc = document.getElementById('modalAcc');
+        const modalChars = document.getElementById('modalChars');
+        const modalBonus = document.getElementById('modalBonus');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+
+        // Key elements map (by character key and physical event code)
+        const keyElements = {};
+        const codeElements = {};
+        document.querySelectorAll('.key').forEach(el => {
+          const k = el.getAttribute('data-key');
+          if (k) {
+            keyElements[k.toLowerCase()] = el;
+          }
+          const c = el.getAttribute('data-code');
+          if (c) {
+            codeElements[c] = el;
+          }
+        });
+
+        // Web Audio Synthesizer for keystroke sounds & bonus chime (zero external dependencies)
+        let audioCtx = null;
+        function getAudioContext() {
+          if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+              audioCtx = new AudioContextClass();
+            }
+          }
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+          return audioCtx;
+        }
+
+        function playKeyClickSound(isError) {
+          try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            if (isError) {
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(140, ctx.currentTime);
+              gain.gain.setValueAtTime(0.08, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+              osc.start();
+              osc.stop(ctx.currentTime + 0.12);
+            } else {
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(580 + Math.random() * 80, ctx.currentTime);
+              gain.gain.setValueAtTime(0.04, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+              osc.start();
+              osc.stop(ctx.currentTime + 0.05);
+            }
+          } catch(e) {}
+        }
+
+        function playBonusChime() {
+          try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const notes = [523.25, 659.25, 783.99, 1046.5]; // C, E, G, C
+            notes.forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.07);
+              gain.gain.setValueAtTime(0.08, ctx.currentTime + idx * 0.07);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.07 + 0.2);
+              osc.start(ctx.currentTime + idx * 0.07);
+              osc.stop(ctx.currentTime + idx * 0.07 + 0.2);
+            });
+          } catch(e) {}
+        }
+
+        // --- Web Speech API with Strict Language Matching ---
+        const voiceSelect = document.getElementById('voiceSelect');
+        const currentVoiceLabel = document.getElementById('currentVoiceLabel');
+        const testVoiceBtn = document.getElementById('testVoiceBtn');
+
+        const defaultLangs = {
+          en: 'en-US',
+          es: 'es-ES',
+          fr: 'fr-FR',
+          de: 'de-DE',
+          it: 'it-IT',
+          pt: 'pt-BR'
+        };
+
+        const samplePhrases = {
+          en: "Practice typing speed and accuracy with precision.",
+          es: "Entrenamiento de velocidad y precisión de escritura.",
+          fr: "Entraînement à la vitesse et à la précision de frappe.",
+          de: "Tastaturtraining für Geschwindigkeit und Genauigkeit.",
+          it: "Allenamento di velocità e precisione di digitazione.",
+          pt: "Treinamento de velocidade e precisão de digitação."
+        };
+
+        let cachedVoices = [];
+
+        function getAllVoices() {
+          if (!window.speechSynthesis) return [];
+          const list = window.speechSynthesis.getVoices();
+          if (list && list.length > 0) {
+            cachedVoices = list;
+          }
+          return cachedVoices;
+        }
+
+        function getVoicesForLanguage(langCode) {
+          const voices = getAllVoices();
+          if (!voices || voices.length === 0) return [];
+
+          return voices.filter(v => {
+            const vLang = (v.lang || '').toLowerCase().replace('_', '-');
+            const vName = (v.name || '').toLowerCase();
+
+            // Strict Anti-Leak: Never return Portuguese voices if language is not 'pt'
+            if (langCode !== 'pt') {
+              if (vLang.startsWith('pt') || vName.includes('portug') || vName.includes('brasil') || vName.includes('brazil') || vName.includes('portugal') || vName.includes('luciana') || vName.includes('felipe')) {
+                return false;
+              }
+            }
+
+            // Language specific checks
+            if (langCode === 'en') {
+              if (vLang.startsWith('en')) return true;
+              if (vName.includes('english') || vName.includes('en-') || vName.includes('united states') || vName.includes('great britain') || vName.includes('australia')) return true;
+              return false;
+            }
+
+            if (langCode === 'es') {
+              if (vLang.startsWith('es')) return true;
+              if (vName.includes('spanish') || vName.includes('español') || vName.includes('espanol') || vName.includes('spain') || vName.includes('mexico')) return true;
+              return false;
+            }
+
+            if (langCode === 'fr') {
+              if (vLang.startsWith('fr')) return true;
+              if (vName.includes('french') || vName.includes('français') || vName.includes('francais') || vName.includes('france')) return true;
+              return false;
+            }
+
+            if (langCode === 'de') {
+              if (vLang.startsWith('de')) return true;
+              if (vName.includes('german') || vName.includes('deutsch') || vName.includes('germany')) return true;
+              return false;
+            }
+
+            if (langCode === 'it') {
+              if (vLang.startsWith('it')) return true;
+              if (vName.includes('italian') || vName.includes('italiano') || vName.includes('italy')) return true;
+              return false;
+            }
+
+            if (langCode === 'pt') {
+              if (vLang.startsWith('pt')) return true;
+              if (vName.includes('portuguese') || vName.includes('português') || vName.includes('portugues') || vName.includes('brasil') || vName.includes('brazil') || vName.includes('portugal')) return true;
+              return false;
+            }
+
+            return false;
+          });
+        }
+
+        function getBestVoiceForLanguage(langCode) {
+          const list = getVoicesForLanguage(langCode);
+          if (list.length > 0) {
+            // Prioritize online/natural or Google/Microsoft native voices of that language
+            const preferred = list.find(v => v.name.toLowerCase().includes('google')) ||
+                              list.find(v => v.name.toLowerCase().includes('natural')) ||
+                              list.find(v => v.name.toLowerCase().includes('microsoft')) ||
+                              list[0];
+            return preferred || null;
+          }
+          // NEVER fallback to another language's voice
+          return null;
+        }
+
+        function populateVoiceSelect() {
+          if (!voiceSelect) return;
+          const voicesForLang = getVoicesForLanguage(state.language);
+          
+          voiceSelect.innerHTML = '';
+          const autoOpt = document.createElement('option');
+          autoOpt.value = 'auto';
+          autoOpt.textContent = `Auto-Matched Native Voice (${state.language.toUpperCase()})`;
+          voiceSelect.appendChild(autoOpt);
+
+          voicesForLang.forEach((v, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx.toString();
+            opt.textContent = `${v.name} (${v.lang})`;
+            voiceSelect.appendChild(opt);
+          });
+
+          const activeVoice = state.selectedVoice || getBestVoiceForLanguage(state.language);
+          if (activeVoice && currentVoiceLabel) {
+            currentVoiceLabel.textContent = `${activeVoice.name.split('-')[0].trim()} (${activeVoice.lang})`;
+          } else if (currentVoiceLabel) {
+            currentVoiceLabel.textContent = `Default ${state.language.toUpperCase()}`;
+          }
+        }
+
+        // Voice Select change event
+        if (voiceSelect) {
+          voiceSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            const voicesForLang = getVoicesForLanguage(state.language);
+            if (val === 'auto' || !voicesForLang[parseInt(val, 10)]) {
+              state.selectedVoice = null;
+            } else {
+              state.selectedVoice = voicesForLang[parseInt(val, 10)];
+            }
+            const activeVoice = state.selectedVoice || getBestVoiceForLanguage(state.language);
+            if (activeVoice && currentVoiceLabel) {
+              currentVoiceLabel.textContent = `${activeVoice.name.split('-')[0].trim()} (${activeVoice.lang})`;
+            }
+            if (state.isPlaying && state.audioEnabled) {
+              speakText(state.targetText);
+            }
+          });
+        }
+
+        if (testVoiceBtn) {
+          testVoiceBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const phrase = samplePhrases[state.language] || samplePhrases['en'];
+            speakText(phrase);
+          });
+        }
+
+        if (window.speechSynthesis) {
+          window.speechSynthesis.onvoiceschanged = () => {
+            getAllVoices();
+            populateVoiceSelect();
+          };
+          getAllVoices();
+          setTimeout(populateVoiceSelect, 150);
+        }
+
+        let currentUtterance = null;
+        function speakText(text) {
+          if (!state.audioEnabled || !window.speechSynthesis) return;
+          try {
+            window.speechSynthesis.cancel();
+
+            const voice = state.selectedVoice || getBestVoiceForLanguage(state.language);
+            const targetLangTag = defaultLangs[state.language] || 'en-US';
+
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = state.difficulty === 'beginner' ? 0.85 : 1.0;
+
+            if (voice) {
+              currentUtterance.voice = voice;
+              currentUtterance.lang = voice.lang || targetLangTag;
+            } else {
+              currentUtterance.voice = null;
+              currentUtterance.lang = targetLangTag;
+            }
+
+            audioIndicator.style.display = 'inline-flex';
+            currentUtterance.onend = () => {
+              audioIndicator.style.display = 'none';
+            };
+            currentUtterance.onerror = () => {
+              audioIndicator.style.display = 'none';
+            };
+            window.speechSynthesis.speak(currentUtterance);
+          } catch(e) {
+            audioIndicator.style.display = 'none';
+          }
+        }
+
+        function stopSpeech() {
+          if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+          audioIndicator.style.display = 'none';
+        }
+
+        // --- Text Generation & Retrieval ---
+        function getAvailableTexts() {
+          const lang = TEXT_DATA[state.language] || TEXT_DATA['en'];
+          const category = lang[state.difficulty] || lang['intermediate'] || TEXT_DATA['en']['intermediate'];
+          return category;
+        }
+
+        function generateNewText() {
+          const list = getAvailableTexts();
+          let pick = list[Math.floor(Math.random() * list.length)];
+          // Ensure we don't pick the same exact string if possible
+          if (list.length > 1 && pick === state.targetText) {
+            pick = list.find(t => t !== state.targetText) || pick;
+          }
+          state.targetText = pick;
+          state.streamText = state.realTimeEnabled ? '' : pick;
+          state.userInput = '';
+          state.hasStartedTyping = false;
+          state.correctChars = 0;
+          state.errorCount = 0;
+          state.streak = 0;
+          
+          updateTargetTextDisplay();
+          renderUserTypedStream();
+          updateHighlightKey();
+
+          if (state.isPlaying && state.audioEnabled) {
+            speakText(state.targetText);
+          }
+        }
+
+        // Real-Time Content Streaming logic
+        function startRealTimeStream() {
+          if (state.realTimeStreamInterval) {
+            clearInterval(state.realTimeStreamInterval);
+          }
+          if (!state.realTimeEnabled) {
+            state.streamText = state.targetText;
+            updateTargetTextDisplay();
+            return;
+          }
+
+          state.streamText = '';
+          liveStreamBadge.style.display = 'inline-flex';
+
+          let charIndex = 0;
+          const fullText = state.targetText;
+          // Streaming speed adjusts with difficulty
+          const speedMs = state.difficulty === 'beginner' ? 180 : (state.difficulty === 'advanced' ? 85 : 120);
+
+          state.realTimeStreamInterval = setInterval(() => {
+            if (!state.isPlaying || state.isPaused) return;
+
+            if (charIndex < fullText.length) {
+              state.streamText += fullText[charIndex];
+              charIndex++;
+              updateTargetTextDisplay();
+              updateHighlightKey();
+            } else {
+              clearInterval(state.realTimeStreamInterval);
+              state.realTimeStreamInterval = null;
+            }
+          }, speedMs);
+        }
+
+        // Render target text with character-level accuracy markers
+        function updateTargetTextDisplay() {
+          const textToRender = state.realTimeEnabled ? state.streamText : state.targetText;
+          const input = state.userInput;
+          
+          let html = '';
+          for (let i = 0; i < textToRender.length; i++) {
+            const ch = textToRender[i];
+            const isCurrent = (i === input.length);
+            let charClass = 'source-char';
+            
+            if (i < input.length) {
+              if (input[i] === ch) {
+                charClass += ' typed-ok';
+              } else {
+                charClass += ' typed-err';
+              }
+            } else if (isCurrent) {
+              charClass += ' active';
+            }
+
+            // Display whitespace visibly if space
+            const displayChar = ch === ' ' ? '&nbsp;' : escapeHtml(ch);
+            html += `<span class="${charClass}">${displayChar}</span>`;
+          }
+
+          contentDisplay.innerHTML = html;
+        }
+
+        function escapeHtml(str) {
+          return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Render user typed stream at the bottom (green for correct, red for mistakes)
+        function renderUserTypedStream() {
+          const input = state.userInput;
+          const target = state.realTimeEnabled ? state.streamText : state.targetText;
+          let html = '';
+
+          for (let i = 0; i < input.length; i++) {
+            const inputChar = input[i];
+            const targetChar = target[i];
+            const isMatch = (targetChar !== undefined && inputChar === targetChar);
+            const spanClass = isMatch ? 'char-correct' : 'char-wrong';
+            const displayChar = inputChar === ' ' ? '&nbsp;' : escapeHtml(inputChar);
+            html += `<span class="${spanClass}">${displayChar}</span>`;
+          }
+
+          renderedTypedContent.innerHTML = html;
+        }
+
+        // Virtual Keyboard Lighting and Target Guidance (Green for correct, Red for mistakes)
+        function getElementForKey(key, code) {
+          if (code && codeElements[code]) return codeElements[code];
+          if (!key) return null;
+          const cleanKey = key.toLowerCase();
+          if (key === ' ' || cleanKey === 'space' || cleanKey === 'spacebar' || code === 'Space') {
+            return keyElements[' '] || document.querySelector('.key-space');
+          }
+          if (cleanKey === 'backspace') return keyElements['backspace'] || codeElements['Backspace'];
+          if (cleanKey === 'enter') return keyElements['enter'] || codeElements['Enter'];
+          if (cleanKey === 'shift') return keyElements['shift'] || codeElements['ShiftLeft'];
+          if (cleanKey === 'tab') return keyElements['tab'] || codeElements['Tab'];
+          if (cleanKey === 'capslock') return keyElements['capslock'] || codeElements['CapsLock'];
+          if (cleanKey === 'control') return keyElements['control'] || codeElements['ControlLeft'];
+          if (cleanKey === 'alt') return keyElements['alt'] || codeElements['AltLeft'];
+          return keyElements[cleanKey] || null;
+        }
+
+        function lightKey(key, isPress, explicitMatch = null, code = null) {
+          const el = getElementForKey(key, code);
+          if (!el) return;
+
+          if (!isPress) {
+            el.classList.remove('active-press-correct', 'active-press-wrong', 'active-press-neutral');
+            return;
+          }
+
+          el.classList.remove('active-press-correct', 'active-press-wrong', 'active-press-neutral');
+
+          const cleanKey = (key || '').toLowerCase();
+          const isModifier = ['shift', 'control', 'alt', 'capslock', 'tab', 'backspace'].includes(cleanKey);
+          if (isModifier) {
+            el.classList.add('active-press-neutral');
+            return;
+          }
+
+          let isMatch = false;
+          if (explicitMatch !== null && explicitMatch !== undefined) {
+            isMatch = !!explicitMatch;
+          } else {
+            const target = state.realTimeEnabled ? state.streamText : state.targetText;
+            const expectedChar = target[state.userInput.length];
+            if (expectedChar !== undefined) {
+              if (key === ' ' || cleanKey === 'space' || cleanKey === 'spacebar' || code === 'Space') {
+                isMatch = (expectedChar === ' ');
+              } else if (key === expectedChar) {
+                isMatch = true;
+              } else if (key.length === 1 && expectedChar.toLowerCase() === key.toLowerCase()) {
+                isMatch = true;
+              }
+            }
+          }
+
+          if (isMatch) {
+            el.classList.add('active-press-correct');
+          } else {
+            el.classList.add('active-press-wrong');
+          }
+        }
+
+        function updateHighlightKey() {
+          document.querySelectorAll('.key.target-next').forEach(el => el.classList.remove('target-next'));
+
+          if (!state.isPlaying || state.isPaused) return;
+
+          const text = state.realTimeEnabled ? state.streamText : state.targetText;
+          const nextChar = text[state.userInput.length];
+          if (nextChar) {
+            const cleanKey = nextChar.toLowerCase();
+            const el = keyElements[cleanKey] || (nextChar === ' ' ? keyElements[' '] : null);
+            if (el) {
+              el.classList.add('target-next');
+            }
+          }
+        }
+
+        // --- Metrics & Live Calculation ---
+        function calculateStats() {
+          const elapsedMs = Math.max(500, (state.duration * 1000) - state.remainingMs);
+          const elapsedMinutes = elapsedMs / 60000;
+          
+          const target = state.realTimeEnabled ? state.streamText : state.targetText;
+          let correct = 0;
+          for (let i = 0; i < state.userInput.length; i++) {
+            if (i < target.length && state.userInput[i] === target[i]) {
+              correct++;
+            }
+          }
+          state.correctChars = correct;
+
+          const currentWpm = Math.round((state.correctChars / 5) / elapsedMinutes) || 0;
+          const totalTyped = state.userInput.length;
+          const accuracy = totalTyped > 0 
+            ? Math.max(0, Math.round((state.correctChars / totalTyped) * 100)) 
+            : 100;
+
+          wpmVal.textContent = currentWpm;
+          accVal.textContent = accuracy;
+          streakVal.textContent = state.streak;
+        }
+
+        // Render timer with minutes, seconds, milliseconds and red glowing pulse near the end
+        function renderTimerDisplay() {
+          const totalMs = Math.max(0, state.remainingMs);
+          const totalSecs = Math.floor(totalMs / 1000);
+          const mins = Math.floor(totalSecs / 60);
+          const secs = totalSecs % 60;
+          const hundredths = Math.floor((totalMs % 1000) / 10);
+
+          const minStr = String(mins).padStart(2, '0');
+          const secStr = String(secs).padStart(2, '0');
+          const msStr = String(hundredths).padStart(2, '0');
+
+          if (timerMinSec) timerMinSec.textContent = `${minStr}:${secStr}`;
+          if (timerMs) timerMs.textContent = `.${msStr}`;
+
+          // Glowing red when timer is close to the end (<= 6 seconds or <= 20% remaining)
+          const isCritical = totalMs <= 6000 || totalMs <= (state.duration * 1000 * 0.2);
+          if (isCritical && state.isPlaying && !state.isPaused) {
+            timerCard.classList.add('timer-critical');
+          } else {
+            timerCard.classList.remove('timer-critical');
+          }
+        }
+
+        // Synchronize UI buttons
+        function syncControlsUI() {
+          const isPlaying = state.isPlaying;
+          const isPaused = state.isPaused;
+
+          if (!isPlaying) {
+            playBtnText.textContent = 'Start';
+            sidebarPlayBtnText.textContent = 'Start Practice';
+            playBtn.classList.remove('playing');
+            sidebarPlayBtn.classList.remove('playing');
+            pauseBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> <span id="pauseBtnText">Pause</span>`;
+            sidebarPauseBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause`;
+          } else if (isPaused) {
+            playBtnText.textContent = 'Paused';
+            sidebarPlayBtnText.textContent = 'Paused';
+            pauseBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span id="pauseBtnText">Resume</span>`;
+            sidebarPauseBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Resume`;
+          } else {
+            playBtnText.textContent = 'Playing';
+            sidebarPlayBtnText.textContent = 'Practicing...';
+            playBtn.classList.add('playing');
+            sidebarPlayBtn.classList.add('playing');
+            pauseBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> <span id="pauseBtnText">Pause</span>`;
+            sidebarPauseBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause`;
+          }
+        }
+
+        // --- Bonus Time Trigger Mechanic ---
+        function awardBonusSeconds(extraSeconds) {
+          if (!state.bonusTimeEnabled) return;
+          state.remainingMs += extraSeconds * 1000;
+          state.endTime += extraSeconds * 1000;
+          state.bonusSecondsEarned += extraSeconds;
+          renderTimerDisplay();
+
+          bonusBadge.textContent = `+${extraSeconds}s BONUS!`;
+          bonusBadge.classList.add('show');
+          playBonusChime();
+
+          setTimeout(() => {
+            bonusBadge.classList.remove('show');
+          }, 1400);
+        }
+
+        // --- Core Timer Engine (High Precision Milliseconds) ---
+        function startTimer() {
+          if (state.timerInterval) clearInterval(state.timerInterval);
+
+          state.endTime = Date.now() + state.remainingMs;
+
+          state.timerInterval = setInterval(() => {
+            if (state.isPaused) {
+              state.endTime = Date.now() + state.remainingMs;
+              return;
+            }
+
+            const now = Date.now();
+            state.remainingMs = Math.max(0, state.endTime - now);
+            renderTimerDisplay();
+            calculateStats();
+
+            if (state.remainingMs <= 0) {
+              finishSession();
+            }
+          }, 33);
+        }
+
+        function finishSession() {
+          clearInterval(state.timerInterval);
+          if (state.realTimeStreamInterval) clearInterval(state.realTimeStreamInterval);
+          state.isPlaying = false;
+          state.isPaused = false;
+          state.isRoundOver = true; // Round is strictly over and waiting for user button click
+          stopSpeech();
+
+          timerCard.classList.remove('timer-critical');
+          syncControlsUI();
+          typingStatusText.textContent = 'Round Completed!';
+          typingStatusText.style.color = '#34d399';
+
+          calculateStats();
+          modalWpm.textContent = wpmVal.textContent;
+          modalAcc.textContent = accVal.textContent;
+          modalChars.textContent = state.userInput.length;
+          modalBonus.textContent = state.bonusSecondsEarned;
+
+          // Render detailed post-round accuracy comparison
+          const roundReviewContent = document.getElementById('roundReviewContent');
+          if (roundReviewContent) {
+            const target = state.realTimeEnabled ? state.streamText : state.targetText;
+            const input = state.userInput;
+            let revHtml = '';
+            for (let i = 0; i < Math.max(target.length, input.length); i++) {
+              const inChar = input[i];
+              const tgChar = target[i];
+              if (inChar === undefined) {
+                revHtml += `<span style="color: #64748b;">${tgChar === ' ' ? '&nbsp;' : escapeHtml(tgChar)}</span>`;
+              } else if (inChar === tgChar) {
+                revHtml += `<span style="color: #34d399; font-weight: 600;">${tgChar === ' ' ? '&nbsp;' : escapeHtml(tgChar)}</span>`;
+              } else {
+                revHtml += `<span style="background: rgba(244,63,94,0.25); color: #fb7185; border-radius: 2px; text-decoration: underline;">${inChar === ' ' ? '&nbsp;' : escapeHtml(inChar)}</span>`;
+              }
+            }
+            roundReviewContent.innerHTML = revHtml || '<span style="color: var(--text-muted);">No input recorded</span>';
+          }
+
+          resultsModal.classList.add('show');
+        }
+
+        // --- Play, Pause, Replay Controls ---
+        function startGame() {
+          state.isRoundOver = false;
+          resultsModal.classList.remove('show');
+          state.isPlaying = true;
+          state.isPaused = false;
+          state.remainingMs = state.duration * 1000;
+          renderTimerDisplay();
+          state.streak = 0;
+          state.bonusSecondsEarned = 0;
+          state.userInput = '';
+          state.correctChars = 0;
+          state.errorCount = 0;
+          hiddenInput.value = '';
+
+          syncControlsUI();
+          typingStatusText.textContent = 'Active - Keep Typing!';
+          typingStatusText.style.color = '#34d399';
+
+          generateNewText();
+          startTimer();
+
+          if (state.realTimeEnabled) {
+            startRealTimeStream();
+          }
+
+          if (state.audioEnabled) {
+            speakText(state.targetText);
+          }
+
+          focusInput();
+          calculateStats();
+        }
+
+        function pauseGame() {
+          if (!state.isPlaying) return;
+          state.isPaused = !state.isPaused;
+          syncControlsUI();
+
+          if (state.isPaused) {
+            typingStatusText.textContent = 'Paused';
+            typingStatusText.style.color = '#f59e0b';
+            stopSpeech();
+          } else {
+            typingStatusText.textContent = 'Active - Keep Typing!';
+            typingStatusText.style.color = '#34d399';
+            focusInput();
+          }
+        }
+
+        function replayGame() {
+          clearInterval(state.timerInterval);
+          if (state.realTimeStreamInterval) clearInterval(state.realTimeStreamInterval);
+          stopSpeech();
+          timerCard.classList.remove('timer-critical');
+          startGame();
+        }
+
+        function focusInput() {
+          hiddenInput.focus({ preventScroll: true });
+        }
+
+        // --- Keyboard & Input Handling with Zero Unwanted Scrolling ---
+        function processInput(rawValue) {
+          if (!state.isPlaying || state.isPaused) {
+            return;
+          }
+
+          const target = state.realTimeEnabled ? state.streamText : state.targetText;
+
+          if (rawValue.length > state.userInput.length) {
+            const lastIndex = rawValue.length - 1;
+            const typedChar = rawValue[lastIndex];
+            const expectedChar = target[lastIndex];
+            const isCorrect = (expectedChar !== undefined && typedChar === expectedChar);
+
+            playKeyClickSound(!isCorrect);
+
+            if (isCorrect) {
+              if (typedChar === ' ') {
+                state.streak++;
+                if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+                if (state.streak % 5 === 0) {
+                  awardBonusSeconds(3);
+                }
+              }
+            } else {
+              state.errorCount++;
+              state.streak = 0;
+            }
+          }
+
+          state.userInput = rawValue;
+          updateTargetTextDisplay();
+          renderUserTypedStream();
+          updateHighlightKey();
+          calculateStats();
+
+          if (state.userInput.length >= target.length && target.length > 0) {
+            awardBonusSeconds(2);
+            // End the round when text finishes and show round over menu
+            setTimeout(() => {
+              finishSession();
+            }, 200);
+          }
+        }
+
+        window.addEventListener('keydown', (e) => {
+          // If a round is over, it CANNOT start automatically.
+          // It MUST wait on the round over menu until the user presses the button to continue!
+          if (state.isRoundOver) {
+            if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter') {
+              e.preventDefault();
+            }
+            return;
+          }
+
+          // CRITICAL: Prevent browser scroll when typing Space, but ACCEPT space for writing!
+          if (e.key === ' ' || e.code === 'Space' || e.key === 'Spacebar') {
+            e.preventDefault(); // Stop window from scrolling down
+
+            if (!state.isPlaying) {
+              startGame();
+              // Prevent leading space from misaligning the entire target sentence
+              const target = state.realTimeEnabled ? state.streamText : state.targetText;
+              if (target.length > 0 && target[0] !== ' ') {
+                lightKey(' ', true, false, 'Space');
+                playKeyClickSound(true);
+                return;
+              }
+            }
+
+            if (state.isPaused) return;
+
+            const target = state.realTimeEnabled ? state.streamText : state.targetText;
+            const expectedChar = target[state.userInput.length];
+            const isCorrectSpace = (expectedChar === ' ');
+
+            // Light key with the exact correctness check (Green = correct, Red = mistake)
+            lightKey(' ', true, isCorrectSpace, 'Space');
+            playKeyClickSound(!isCorrectSpace);
+
+            hiddenInput.value += ' ';
+            processInput(hiddenInput.value);
+            return;
+          }
+
+          if (e.key === 'Tab') {
+            e.preventDefault();
+          }
+
+          // If game hasn't started and user presses regular typing key, auto-start!
+          if (!state.isPlaying && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            startGame();
+          }
+
+          if (state.isPaused) return;
+
+          // Evaluate key correctness
+          const target = state.realTimeEnabled ? state.streamText : state.targetText;
+          const expectedChar = target[state.userInput.length];
+          let isMatch = false;
+          if (expectedChar !== undefined) {
+            if (e.key === expectedChar || (e.key.length === 1 && expectedChar.toLowerCase() === e.key.toLowerCase())) {
+              isMatch = true;
+            }
+          }
+
+          lightKey(e.key, true, isMatch, e.code);
+
+          // Focus hidden input without scrolling
+          if (document.activeElement !== hiddenInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            focusInput();
+          }
+        });
+
+        window.addEventListener('keyup', (e) => {
+          lightKey(e.key, false, null, e.code);
+        });
+
+        // Typing verification logic for regular keystrokes
+        hiddenInput.addEventListener('input', (e) => {
+          if (state.isRoundOver) return;
+          processInput(hiddenInput.value);
+        });
+
+        // Click stream box to focus without scrolling
+        typedStreamContainer.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (state.isRoundOver) return;
+          focusInput();
+        });
+
+        // Click virtual keys to simulate input
+        document.querySelectorAll('.key').forEach(keyEl => {
+          keyEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (state.isRoundOver) return;
+            const keyVal = keyEl.getAttribute('data-key');
+            const codeVal = keyEl.getAttribute('data-code');
+            if (!keyVal && !codeVal) return;
+
+            if (keyVal === 'Space' || keyVal === ' ' || keyEl.classList.contains('key-space') || codeVal === 'Space') {
+              if (!state.isPlaying) {
+                startGame();
+                const target = state.realTimeEnabled ? state.streamText : state.targetText;
+                if (target.length > 0 && target[0] !== ' ') {
+                  lightKey(' ', true, false, 'Space');
+                  playKeyClickSound(true);
+                  setTimeout(() => lightKey(' ', false, null, 'Space'), 180);
+                  return;
+                }
+              }
+
+              if (state.isPaused) return;
+
+              const target = state.realTimeEnabled ? state.streamText : state.targetText;
+              const expectedChar = target[state.userInput.length];
+              const isMatch = (expectedChar === ' ');
+
+              lightKey(' ', true, isMatch, 'Space');
+              playKeyClickSound(!isMatch);
+
+              hiddenInput.value += ' ';
+              processInput(hiddenInput.value);
+              setTimeout(() => lightKey(' ', false, null, 'Space'), 180);
+              return;
+            }
+
+            if (!state.isPlaying) {
+              startGame();
+            }
+            if (state.isPaused) return;
+
+            const target = state.realTimeEnabled ? state.streamText : state.targetText;
+            const expectedChar = target[state.userInput.length];
+            let isMatch = false;
+            if (expectedChar !== undefined && keyVal) {
+              if (keyVal === expectedChar || (keyVal.length === 1 && expectedChar.toLowerCase() === keyVal.toLowerCase())) {
+                isMatch = true;
+              }
+            }
+
+            if (keyVal === 'Backspace' || codeVal === 'Backspace') {
+              hiddenInput.value = hiddenInput.value.slice(0, -1);
+            } else if (keyVal === 'Enter' || codeVal === 'Enter') {
+              hiddenInput.value += ' ';
+            } else if (keyVal && keyVal.length === 1) {
+              hiddenInput.value += keyVal;
+            }
+
+            lightKey(keyVal || codeVal, true, isMatch, codeVal);
+            processInput(hiddenInput.value);
+            setTimeout(() => lightKey(keyVal || codeVal, false, null, codeVal), 180);
+          });
+        });
+
+        // --- Settings Event Handlers ---
+        difficultySelect.addEventListener('change', (e) => {
+          state.difficulty = e.target.value;
+          categoryBadge.textContent = e.target.options[e.target.selectedIndex].text.split('(')[0].trim();
+          generateNewText();
+        });
+
+        languageSelect.addEventListener('change', (e) => {
+          state.language = e.target.value;
+          state.selectedVoice = null;
+          stopSpeech();
+          populateVoiceSelect();
+          generateNewText();
+          if (state.isPlaying && state.audioEnabled) {
+            speakText(state.targetText);
+          }
+        });
+
+        // Duration Presets
+        timePresets.addEventListener('click', (e) => {
+          const btn = e.target.closest('.time-btn');
+          if (!btn) return;
+          e.preventDefault();
+          document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.duration = parseInt(btn.getAttribute('data-time'), 10);
+          state.remainingMs = state.duration * 1000;
+          renderTimerDisplay();
+        });
+
+        // Visibility Toggle (Blind Mode / Sight Mode)
+        textVisibleToggle.addEventListener('change', (e) => {
+          state.textVisible = e.target.checked;
+          if (state.textVisible) {
+            contentDisplay.classList.remove('hidden-mode');
+            blindOverlay.classList.remove('show');
+          } else {
+            contentDisplay.classList.add('hidden-mode');
+            blindOverlay.classList.add('show');
+          }
+        });
+
+        // Audio Dictation Toggle
+        audioToggle.addEventListener('change', (e) => {
+          state.audioEnabled = e.target.checked;
+          if (!state.audioEnabled) {
+            stopSpeech();
+          } else if (state.isPlaying) {
+            speakText(state.targetText);
+          }
+        });
+
+        // Real-Time Stream Toggle
+        realTimeToggle.addEventListener('change', (e) => {
+          state.realTimeEnabled = e.target.checked;
+          liveStreamBadge.style.display = state.realTimeEnabled ? 'inline-flex' : 'none';
+          if (state.isPlaying) {
+            startRealTimeStream();
+          } else {
+            state.streamText = state.realTimeEnabled ? '' : state.targetText;
+            updateTargetTextDisplay();
+          }
+        });
+
+        // Streak Bonus Toggle
+        bonusTimeToggle.addEventListener('change', (e) => {
+          state.bonusTimeEnabled = e.target.checked;
+        });
+
+        // Action Buttons (Action bar next to Timer)
+        playBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (!state.isPlaying) {
+            startGame();
+          } else {
+            pauseGame();
+          }
+        });
+
+        pauseBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          pauseGame();
+        });
+
+        replayBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          replayGame();
+        });
+
+        // Sidebar Duplicate Controls
+        if (sidebarPlayBtn) {
+          sidebarPlayBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!state.isPlaying) {
+              startGame();
+            } else {
+              pauseGame();
+            }
+          });
+        }
+
+        if (sidebarPauseBtn) {
+          sidebarPauseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            pauseGame();
+          });
+        }
+
+        if (sidebarReplayBtn) {
+          sidebarReplayBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            replayGame();
+          });
+        }
+
+        nextTextBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          generateNewText();
+          if (state.realTimeEnabled && state.isPlaying) {
+            startRealTimeStream();
+          }
+        });
+
+        // Modal actions
+        modalRestartBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          resultsModal.classList.remove('show');
+          startGame();
+        });
+
+        modalCloseBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          resultsModal.classList.remove('show');
+          state.isRoundOver = false;
+        });
+
+        // Mobile drawer toggle
+        mobileMenuToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          sidebarMenu.classList.toggle('open');
+        });
+
+        // Close sidebar drawer on click outside (mobile)
+        document.addEventListener('click', (e) => {
+          if (window.innerWidth <= 992 && 
+              sidebarMenu.classList.contains('open') && 
+              !sidebarMenu.contains(e.target) && 
+              !mobileMenuToggle.contains(e.target)) {
+            sidebarMenu.classList.remove('open');
+          }
+        });
+
+        // Initialize default test text and timer on page load
+        generateNewText();
+        renderTimerDisplay();
+      })();
+    </script>
+  </body>
+</html>
